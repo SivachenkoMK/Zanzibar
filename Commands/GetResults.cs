@@ -10,7 +10,7 @@ namespace ZanzibarBot.Commands
     {
         public override string Name => "getresults";
 
-        public override void Execute(MessageEventArgs message, TelegramBotClient bot)
+        public override void Execute(MessageEventArgs message)
         {
             
         }

@@ -13,15 +13,13 @@ namespace ZanzibarBot.Commands
     {
         public override string Name => "pickstatus";
 
-        public override void Execute(MessageEventArgs message, TelegramBotClient bot)
+        public override void Execute(MessageEventArgs message)
         {
-            InlineKeyboardButton Participant = new InlineKeyboardButton();
-            Participant.Text = "Учасник.";
-            InlineKeyboardButton Administrator = new InlineKeyboardButton();
-            Participant.Text = "Администратор.";
-            List<InlineKeyboardButton> Buttons = new List<InlineKeyboardButton> { Administrator, Participant };
-            InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup(Buttons);
-            bot.SendTextMessageAsync(message.Message.Chat.Id, "Оберіть свій статус.", replyMarkup: keyboardMarkup);
+            /*
+             Переделать под кнопки 
+             InlineKeyboardButton
+             */
+            MessageSender.SendMessage(message.Message.Chat.Id, "Оберіть свій статус. Якщо ви учасник, напишіть 1, якщо перевіряючий напишіть 2.");
         }
     }
 }

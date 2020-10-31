@@ -18,6 +18,7 @@ namespace ZanzibarBot
             client = new TelegramBotClient(ApiSettings.Token);
             client.StartReceiving();
             client.OnMessage += MessageHandler;
+            MessageSender.SetClient(client);
             string ExitWord = "";
             while (ExitWord != "exit")
             {
@@ -36,7 +37,7 @@ namespace ZanzibarBot
                 {
                     if (command.Contains(message.Text))
                     {
-                        command.Execute(messageEventArgs, client);
+                        command.Execute(messageEventArgs);
                     }
                 }    
             }

@@ -19,6 +19,6 @@ namespace ZanzibarBot.Commands
             return false;
         }
 
-        public abstract void Execute(MessageEventArgs message, TelegramBotClient bot);
+        public abstract void Execute(MessageEventArgs message);
     }
 }

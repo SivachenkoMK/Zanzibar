@@ -4,6 +4,7 @@ using System.Text;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
+using ZanzibarBot.People;
 
 namespace ZanzibarBot.Commands
 {
@@ -11,13 +12,13 @@ namespace ZanzibarBot.Commands
     {
         public override string Name => "start";
 
-        public override void Execute(MessageEventArgs message, TelegramBotClient bot)
+        public override void Execute(MessageEventArgs message)
         {
             string TextInUkrainian = "Привіт. Я бот, котрий допоможе Тобі з олімпіадою «Занзібар».";
-            bot.SendTextMessageAsync(message.Message.Chat.Id, TextInUkrainian);
+            MessageSender.SendMessage(message.Message.Chat.Id, TextInUkrainian);
             Person person = new Person();
             person.ChatId = message.Message.Chat.Id;
-
+            ListOfPeople.AddPersonToList(person);
         }
     }
 }

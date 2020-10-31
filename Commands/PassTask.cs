@@ -10,7 +10,7 @@ namespace ZanzibarBot.Commands
     {
         public override string Name => "passtask";
 
-        public override void Execute(MessageEventArgs message, TelegramBotClient bot)
+        public override void Execute(MessageEventArgs message)
         {
             /* Add logic for this command */
         }

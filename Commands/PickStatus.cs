@@ -13,6 +13,8 @@ namespace ZanzibarBot.Commands
     {
         public override string Name => "pickstatus";
 
+        public override bool IsEnabled { get; set; } = true;
+
         public override void Execute(MessageEventArgs message)
         {
             /*

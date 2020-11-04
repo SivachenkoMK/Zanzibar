@@ -9,6 +9,8 @@ namespace ZanzibarBot.Commands
 {
     public abstract class Command
     {
+        public abstract bool IsEnabled { get; set; }
+
         public abstract string Name { get; }
 
         public bool Contains(string Text)
@@ -20,5 +22,15 @@ namespace ZanzibarBot.Commands
         }
 
         public abstract void Execute(MessageEventArgs message);
+    
+        public void Disable()
+        {
+            IsEnabled = false;
+        }
+
+        public void Enable()
+        {
+            IsEnabled = true;
+        }
     }
 }

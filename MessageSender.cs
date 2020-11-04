@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.InputFiles;
 
 namespace ZanzibarBot
 {
@@ -16,9 +17,9 @@ namespace ZanzibarBot
             client = someClient;
         }
 
-        public static void SendMessage(long ChatId, Message message)
+        public static void SendMessage(long ChatId, InputOnlineFile document)
         {
-            client?.SendTextMessageAsync(ChatId, message.Text);
+            client?.SendDocumentAsync(ChatId, document);
         }
 
         public static void SendMessage(long ChatId, string text)

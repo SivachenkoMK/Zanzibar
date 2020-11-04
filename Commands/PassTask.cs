@@ -10,9 +10,18 @@ namespace ZanzibarBot.Commands
     {
         public override string Name => "passtask";
 
+        public override bool IsEnabled { get; set; } = true;
+
         public override void Execute(MessageEventArgs message)
         {
-            /* Add logic for this command */
+            if (IsEnabled)
+            {
+                /* Add logic for this command */
+            }
+            else
+            {
+                MessageSender.SendMessage(message.Message.Chat.Id, "Ви не можете виконати цю команду.");
+            }
         }
     }
 }

@@ -30,5 +30,19 @@ namespace ZanzibarBot.Commands
                 return commands;
             }
         }
+
+        public static void DisableCommands(string[] Commands)
+        {
+            foreach (Command command in commands)
+            {
+                for (int i = 0; i < Commands.Length; i++)
+                {
+                    if (Commands[i] == command.Name)
+                    {
+                        command.Disable();
+                    }
+                }
+            }
+        }
     }
 }

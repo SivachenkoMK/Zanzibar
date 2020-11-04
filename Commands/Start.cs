@@ -12,6 +12,8 @@ namespace ZanzibarBot.Commands
     {
         public override string Name => "start";
 
+        public override bool IsEnabled { get; set; } = true;
+
         public override void Execute(MessageEventArgs message)
         {
             string TextInUkrainian = "Привіт. Я бот, котрий допоможе Тобі з олімпіадою «Занзібар».";

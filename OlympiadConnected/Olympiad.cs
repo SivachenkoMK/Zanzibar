@@ -36,14 +36,7 @@ namespace ZanzibarBot
 
         private void EndOlympiad()
         {
-            /*
-             * Мысли
-             * Стоит каким-то образом убрать из этого класса вызов всех команд по окончанию олимпиады.
-             * Так я не нарушу SRP 
-             * Вызывать отсюда класс Bot я не буду чтоб не нарушить DIP 
-            */
-            string[] commands = { "passtask" };
-            Commands.ListOfCommands.DisableCommands(commands);
+            Commands.ListOfCommands.DisableCommandsOnOlympiadEnd();
             //Заглушка
             results.SendFinalResults();
         }

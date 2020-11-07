@@ -31,7 +31,7 @@ namespace ZanzibarBot.Commands
             }
         }
 
-        public static void DisableCommands(string[] Commands)
+        private static void DisableCommands(string[] Commands)
         {
             foreach (Command command in commands)
             {
@@ -43,6 +43,12 @@ namespace ZanzibarBot.Commands
                     }
                 }
             }
+        }
+
+        public static void DisableCommandsOnOlympiadEnd()
+        {
+            string[] commands = { "passtask" };
+            DisableCommands(commands);
         }
     }
 }

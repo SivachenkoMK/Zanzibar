@@ -17,11 +17,14 @@ namespace ZanzibarBot.Commands
 
         public override void Execute(MessageEventArgs message)
         {
-            /*
-             Переделать под кнопки 
-             InlineKeyboardButton
-             */
-            MessageSender.SendMessage(message.Message.Chat.Id, "Оберіть свій статус. Якщо ви учасник, напишіть 1, якщо перевіряючий напишіть 2.");
+            ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup(new[]
+            {
+                    new KeyboardButton("Учасник"),
+                    new KeyboardButton("Перевіряючий"),
+            });
+            markup.ResizeKeyboard = true;
+            markup.OneTimeKeyboard = true;
+            MessageSender.SendMessage(message.Message.Chat.Id, "Оберіть свій статус.", markup);
         }
     }
 }

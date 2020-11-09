@@ -8,6 +8,6 @@ namespace ZanzibarBot
     {
         public static string Token = "token";
 
-        public static string Tag = "ZanzibarForMath_Bot";
+        public static string Tag = "ZanzibarMO_Bot";
     }
 }

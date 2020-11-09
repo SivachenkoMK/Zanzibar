@@ -39,6 +39,7 @@ namespace ZanzibarBot
                         command.Execute(messageEventArgs);
                     }
                 }
+                People.ListOfPeople.TrySettingStatusForNewPerson(message);
             }
         }
     }

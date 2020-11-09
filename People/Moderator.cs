@@ -4,11 +4,13 @@ using System.Text;
 
 namespace ZanzibarBot.People
 {
-    class Administrator : Person
+    class Moderator : Person
     {
         public override long ChatId { get; set; }
 
-        public Administrator(long Id)
+        public override string Status { get; set; } = "Moderator";
+
+        public Moderator(long Id)
         {
             ChatId = Id;
         }

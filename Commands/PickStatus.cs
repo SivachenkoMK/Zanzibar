@@ -19,12 +19,12 @@ namespace ZanzibarBot.Commands
         {
             ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup(new[]
             {
-                    new KeyboardButton("Учасник"),
-                    new KeyboardButton("Перевіряючий"),
+                    new KeyboardButton("Captain"),
+                    new KeyboardButton("Moderator"),
             });
             markup.ResizeKeyboard = true;
             markup.OneTimeKeyboard = true;
-            MessageSender.SendMessage(message.Message.Chat.Id, "Оберіть свій статус.", markup);
+            MessageSender.SendMessage(message.Message.Chat.Id, "Оберіть свій статус. Якщо ви капітан команди - оберіть Captain, якщо перевіряючий - оберіть Moderator", markup);
         }
     }
 }

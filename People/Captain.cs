@@ -1,63 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Telegram.Bot;
 using Telegram.Bot.Types;
 
 namespace ZanzibarBot.People
 {
-    public class Captain : Person
+    class Captain : StatusFeatures
     {
-        private Priorities Priority = Priorities.NoPriority;
+        public Person person { get; set; }
+        public bool IsKing { get; } = false;
 
-        public override long ChatId { get; set; }
-
-        public override string Status { get; set; } = "Captain";
-
-        public string TeamName { get; set; }
-
-        public Captain(long Id)
+        public void CheckTask(Message message)
         {
-            ChatId = Id;
+            
         }
 
-        //Переписать все это говно, оставить только идею с processmessage.
-
-        public void DisplaySetCommandName()
+        public void SetTeamName(Message message)
         {
-            MessageSender.SendMessage(ChatId, "Введіть назву команди");
-            Priority = Priorities.SetTeamName;
-        }
-
-        private void SetTeamName(Message message)
-        {
-            if (message.Type == Telegram.Bot.Types.Enums.MessageType.Text)
+            if (message.Text.Length > 16)
             {
-                MessageSender.SendMessage(ChatId, "Бот не може розпізнати ваше повідомлення.");
-            }
-            else if (message.Text.Length > 12)
-            {
-                MessageSender.SendMessage(ChatId, "Завелика назва команди. Спробуйте ще раз.");
+                MessageSender.SendMessage(person.ChatId, "Завелика назва команди, спробуйте ще раз");
+                GetTeamName();
             }
             else
             {
-                TeamName = message.Text;
-                Priority = Priorities.NoPriority;
+                person.TeamName = message.Text;
+                MessageSender.SendMessage(person.ChatId, $"Назва команди успішно встановлена - {person.TeamName}");
+                person.Priority = Person.Priorities.NoPriority;
             }
         }
 
-        public void ProcessMessage(Message message)
-        { 
-            if (Priority == Priorities.SetTeamName)
-            {
-                //SetCommandName(message);
-            }
+        public void GetTeamName()
+        {
+            MessageSender.SendMessage(person.ChatId, "Введіть назву команди.");
+            person.Priority = Person.Priorities.SetTeamName;
         }
-    }
-
-    enum Priorities
-    {
-        NoPriority,
-        SetTeamName
     }
 }

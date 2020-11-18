@@ -5,7 +5,7 @@ using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using ZanzibarBot.Commands;
+using ZanzibarBot.People;
 
 namespace ZanzibarBot
 {
@@ -29,18 +29,23 @@ namespace ZanzibarBot
         private void MessageHandle(object Sender, MessageEventArgs messageEventArgs)
         {
             Message message = messageEventArgs.Message;
-            List<Command> commands = ListOfCommands.Commands;
-            if (message.Type == MessageType.Text)
+            bool SuchPersonIsInitialized = false; 
+            foreach (Person somePerson in ListOfPeople.People)
             {
-                foreach (Command command in commands)
+                if (somePerson.ChatId == message.Chat.Id)
                 {
-                    if (command.Contains(message.Text))
-                    {
-                        command.Execute(messageEventArgs);
-                    }
+                    SuchPersonIsInitialized = true;
+                    break;
                 }
-                People.ListOfPeople.TrySettingStatusForNewPerson(message);
             }
+            if (SuchPersonIsInitialized == false)
+            {
+                Person newPerson = new Person();
+                newPerson.ChatId = message.Chat.Id;
+                ListOfPeople.AddPersonToList(newPerson);
+            }
+            Person person = ListOfPeople.GetPerson(message.Chat.Id);
+            person.ProcessMessage(message);
         }
     }
 }

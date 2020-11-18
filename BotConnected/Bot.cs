@@ -5,7 +5,8 @@ using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using ZanzibarBot.Commands;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ZanzibarBot
 {

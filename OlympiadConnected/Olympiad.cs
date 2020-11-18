@@ -7,18 +7,21 @@ using System.Text;
 using System.Runtime.CompilerServices;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
+using ZanzibarBot.People;
 
 namespace ZanzibarBot
 {
-    public class Olympiad
+    public static class Olympiad
     {
-        public readonly Results results;
+        public static readonly Results results;
 
-        private DateTime StartOfOlympiadTime;
-        private DateTime CurrentTime;
-        private DateTime EndOfOlympiadTime;
+        private static DateTime StartOfOlympiadTime;
+        private static DateTime CurrentTime;
+        private static DateTime EndOfOlympiadTime;
 
-        private void SetUpTimer()
+        public static bool ToStartOlimpiad = false;
+        
+        private static void SetUpTimer()
         {
             StartOfOlympiadTime = DateTime.Now;
             EndOfOlympiadTime = StartOfOlympiadTime.AddHours(2);
@@ -29,14 +32,48 @@ namespace ZanzibarBot
             EndOlympiad();
         }
 
-        public void StartOlympiad()
+        public static async void SetUpTimerAsync()
         {
-            SetUpTimer();
+            await Task.Run(() => SetUpTimer());
         }
 
-        private void EndOlympiad()
+        public static void TryStartingOlympiad()
         {
-            Commands.ListOfCommands.DisableCommandsOnOlympiadEnd();
+            int AmountOfTeams = 0;
+            foreach (Person person in ListOfPeople.People)
+            {
+                if (person.Status == "Captain" && person.IsReady)
+                    AmountOfTeams++;
+            }
+            foreach (Person person in ListOfPeople.People)
+            {
+                if (person.Status == "Moderator" && person.IsMainModerator && AmountOfTeams == PeopleData.NeededAmountOfTeams)
+                {
+                    person.AskForStartingOlympaiad();
+                    break;
+                }
+            }
+            while (true)
+            {
+                if (ToStartOlimpiad)
+                {
+                    StartOlympiad();
+                }
+            }
+        }
+
+        public static async void TryStartingOlympiadAsync()
+        {
+            await Task.Run(() => TryStartingOlympiad());
+        }
+
+        public static void StartOlympiad()
+        {
+            SetUpTimerAsync();
+        }
+
+        private static void EndOlympiad()
+        {
             //Заглушка
             results.SendFinalResults();
         }

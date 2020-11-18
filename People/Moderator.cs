@@ -1,18 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Telegram.Bot.Types;
 
 namespace ZanzibarBot.People
 {
-    class Moderator : Person
+    class Moderator : StatusFeatures
     {
-        public override long ChatId { get; set; }
+        public Person person { get; set; }
+        
+        public bool IsKing
+        { 
+            get
+            {
+                return (this.Level != "Common");
+            }
+        }
 
-        public override string Status { get; set; } = "Moderator";
+        public string Level = "Common";
 
-        public Moderator(long Id)
+        public void CheckTask(Message message)
         {
-            ChatId = Id;
+            // Реализовать тут проверку задачи проверяющим.
+        }
+
+        public void SetTeamName(Message message)
+        {
+            MessageSender.SendMessage(person.ChatId, "Ця команда призначена капітанам команд.");
+        }
+
+        public void GetTeamName()
+        {
+
         }
     }
 }

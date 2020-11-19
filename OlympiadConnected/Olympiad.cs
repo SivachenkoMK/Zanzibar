@@ -39,27 +39,7 @@ namespace ZanzibarBot
 
         public static void TryStartingOlympiad()
         {
-            int AmountOfTeams = 0;
-            foreach (Person person in ListOfPeople.People)
-            {
-                if (person.Status == "Captain" && person.IsReady)
-                    AmountOfTeams++;
-            }
-            foreach (Person person in ListOfPeople.People)
-            {
-                if (person.Status == "Moderator" && person.IsMainModerator && AmountOfTeams == PeopleData.NeededAmountOfTeams)
-                {
-                    person.AskForStartingOlympaiad();
-                    break;
-                }
-            }
-            while (true)
-            {
-                if (ToStartOlimpiad)
-                {
-                    StartOlympiad();
-                }
-            }
+            
         }
 
         public static async void TryStartingOlympiadAsync()

@@ -6,219 +6,164 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 using ZanzibarBot.People;
 
-namespace ZanzibarBot
+namespace ZanzibarBot.People
 {
     public class Person
     {
-        public Priorities Priority = Priorities.NoPriority;
+        private const string AuthorizationWasSuccessful = "Авторізація пройшла успішно.";
+     
+        public long ChatId;
 
-        //flags
-        public bool IsAuthorized = false;
-        public bool IsReady = false;
-        public bool IsMainModerator = false;
-
-        public long ChatId { get; set; }
-
-        public string Status { get; set; }
-
-        public string TeamName;
-
-        private StatusFeatures statusFeatures;
-
-        public bool IsStatusSetted()
-        {
-            return (Status != null);
-        }
+        private Priorities priority;
 
         public virtual void ProcessMessage(Message message)
         {
-            if (message.Type != Telegram.Bot.Types.Enums.MessageType.Text)
+            if (message.Text == "/start" || message.Text == "/changestatus")
             {
-                MessageSender.SendMessage(ChatId, "Бот не розпізнає нічого крім тексту, введи коректні дані.");
+                MessageSender.SendMessage(ChatId, "Привіт. Я бот, котрий допоможе Вам з олімпіадою «Занзібар».");
+                PickStatusDisplay();
             }
-            else if (Priority != Priorities.NoPriority)
+            else if (priority == Priorities.PickStatus)
             {
-                ProcessMessageWithPriority(message);
-            }
-            else
-            {
-                switch (message.Text)
+                if (message.Text == "Captain")
                 {
-                    case ("/start"):
-                        {
-                            if (!IsAuthorized)
-                            {
-                                IsAuthorized = true;
-                                Start();
-                            }
-                            break;
-                        }
-                    case ("/changestatus"):
-                        {
-                            PickStatus();
-                            break;
-                        }
-                    default:
-                        {
-                            break;
-                        }
+                    AskTeamNameDisplay();
+                }
+                else if (message.Text == "Moderator")
+                {
+                    AskPasswordDisplay();
                 }
             }
+            else if (priority == Priorities.GetTeamName)
+            {
+                ProcessTeamNameDisplay(message);
+            }
+            else if (priority == Priorities.ProcessPassword)
+            {
+                ProcessModeratorPasswordForCorrectness(message);
+            }
         }
 
-        private void Start()
-        {
-            string TextInUkrainian = "Привіт. Я бот, котрий допоможе Тобі з олімпіадою «Занзібар».";
-            MessageSender.SendMessage(ChatId, TextInUkrainian);
-            PickStatus();
-        }
-
-        public void PickStatus()
+        private void PickStatusDisplay()
         {
             ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup(new[]
-            {
+                {
                     new KeyboardButton("Captain"),
                     new KeyboardButton("Moderator"),
-            })
+                })
             {
                 ResizeKeyboard = true,
                 OneTimeKeyboard = true
             };
-            MessageSender.SendMessage(ChatId, "Обери свій статус. Якщо Ти капітан команди - обери Captain, якщо перевіряючий - обери Moderator", markup);
-            Priority = Priorities.PickStatus;
+            MessageSender.SendMessage(ChatId, "Оберіть свій статус. Якщо Ви капітан команди - оберіть Captain, якщо перевіряючий - оберіть Moderator", markup);
+            priority = Priorities.PickStatus;
         }
 
-        public void ProcessMessageWithPriority(Message message)
+        private void AskTeamNameDisplay()
         {
-            switch (Priority)
+            MessageSender.SendMessage(ChatId, "Введіть назву команди.");
+            priority = Priorities.GetTeamName;
+        }
+
+        private void AskPasswordDisplay()
+        {
+            MessageSender.SendMessage(ChatId, "Введіть пароль.");
+            priority = Priorities.ProcessPassword;
+        }
+
+        private void ProcessTeamNameDisplay(Message message)
+        {
+            if (message.Text.Length > 16)
             {
-                case (Priorities.SetTeamName):
-                    {
-                        statusFeatures.SetTeamName(message);
-                        GetReady();
-                        break;
-                    }
-                case (Priorities.PickStatus):
-                    {
-                        if (message.Text == "Captain")
-                        {
-                            Status = "Captain";
-                            statusFeatures = new Captain
-                            {
-                                person = this
-                            };
-                            Priority = Priorities.NoPriority;
-                            statusFeatures.GetTeamName();
-                        }
-                        else if (message.Text == "Moderator")
-                        {
-                            AskForPassword();
-                        }
-                        else
-                        {
-                            MessageSender.SendMessage(ChatId, "Введено неправильні дані. Спропуй ще раз. Натисни на одну з кнопок яка задовольняє Твоєму статусу.");
-                            PickStatus();
-                        }
-                        break;
-                    }
-                case (Priorities.ComparePasswords):
-                    {
-                        if (message.Text == "/changestatus")
-                        {
-                            PickStatus();
-                        }
-                        else if (message.Text == PeopleData.PasswordForModerator)
-                        {
-                            Status = "Moderator";
-                            statusFeatures = new Moderator()
-                            {
-                                person = this,
-                                Level = "Common"
-                            };
-                            MessageSender.SendMessage(ChatId, "Авторізація пройшла успішно.");
-                            Priority = Priorities.NoPriority;
-                            GetReady();
-                        }
-                        else if (message.Text == PeopleData.PasswordForMainModerator)
-                        {
-                            Status = "Moderator";
-                            statusFeatures = new Moderator()
-                            {
-                                person = this,
-                                Level = "Main"
-                            };
-                            MessageSender.SendMessage(ChatId, "Авторізація пройшла успішно.");
-                            Priority = Priorities.NoPriority;
-                            IsReady = true;
-                            Olympiad.TryStartingOlympiadAsync();
-                        }
-                        else
-                        {
-                            MessageSender.SendMessage(ChatId, "Некоректний пароль. Спробуй ще раз, або скористуйся командою /changestatus щоб змінити статус на капітана команди");
-                        }
-                        break;
-                    }
-                case (Priorities.GetReady):
-                    {
-                        if (message.Text == "/changestatus")
-                        {
-                            PickStatus();
-                        }
-                        else if (message.Text == "Ready")
-                        {
-                            IsReady = true;
-                            Priority = Priorities.WaitingForStart;
-                        }
-                        else
-                        {
-                            MessageSender.SendMessage(ChatId, "Приготуйся до олімпіади - натисни кнопку Ready. Якщо Ти неправильно обрав свій статус, можеш змінити його за допомогою команди /changestatus.", new ReplyKeyboardMarkup(new KeyboardButton("Ready")) { OneTimeKeyboard = true, ResizeKeyboard = true });
-                        }
-                        break;
-                    }
-                case (Priorities.WaitingForStart):
-                    {
-                        MessageSender.SendMessage(ChatId, "Ти вже приготувався до олімпіади, зачекай доки інші учасники та перевіряючі підготуються.");
-                        break;
-                    }
-                case (Priorities.WaitingForPermissionToStart):
-                    {
-                        if (message.Text == "Start" && statusFeatures.IsKing)
-                        {
-                            Olympiad.ToStartOlimpiad = true;
-                            Priority = Priorities.NoPriority;
-                        }
-                        break;
-                    }
+                MessageSender.SendMessage(ChatId, "Завелика назва команди. Спробуйте ще раз.");
+            }
+            else
+            {
+                CreateNewCaptain(message);
+
+                RemoveThisFromWaitList();
+                priority = Priorities.NoPriority;
             }
         }
 
-        private void AskForPassword()
+        private void CreateNewCaptain(Message message)
         {
-            MessageSender.SendMessage(ChatId, "Введи пароль.");
-            Priority = Priorities.ComparePasswords;
+            string teamName = message.Text;
+
+            Captain captain = new Captain
+            {
+                ChatId = this.ChatId,
+                TeamName = teamName
+            };
+
+            ListOfPeople.AddToListOfPeople(captain);
+
+            MessageSender.SendMessage(ChatId, AuthorizationWasSuccessful);
         }
 
-        public void GetReady()
+        private void ProcessModeratorPasswordForCorrectness(Message message)
         {
-            MessageSender.SendMessage(ChatId, "Приготуйся до олімпіади - натисни кнопку Ready. Якщо Ти неправильно обрав свій статус, можеш змінити його за допомогою команди /changestatus", new ReplyKeyboardMarkup(new KeyboardButton("Ready")) { OneTimeKeyboard = true, ResizeKeyboard = true }); 
-            Priority = Priorities.GetReady;
+            string supposedPassword = message.Text;
+
+            if (supposedPassword == PeopleData.PasswordForModerator)
+            {
+                CreateNewModerator();
+
+                RemoveThisFromWaitList();
+                priority = Priorities.NoPriority;
+            }
+            else if (supposedPassword == PeopleData.PasswordForMainModerator)
+            {
+                CreateNewMainModerator();
+
+                RemoveThisFromWaitList();
+                priority = Priorities.NoPriority;
+            }
+            else
+            {
+                MessageSender.SendMessage(ChatId, "Неправильний пароль. Спробуйте знову, або скористуйтеся командою /changestatus, щоб змінити статус на капітана команди.");
+            }
         }
 
-        public void AskForStartingOlympaiad()
+        private void CreateNewModerator()
         {
-            MessageSender.SendMessage(ChatId, "Ви - головний модератор. Перевірте що в аудиторії усі готові та розпочніть олімпіаду, натиснувши на кнопку нижче.", new ReplyKeyboardMarkup(new KeyboardButton("Start")) { OneTimeKeyboard = true, ResizeKeyboard = true });
-            Priority = Priorities.WaitingForPermissionToStart;
+            Moderator moderator = new Moderator()
+            {
+                ChatId = this.ChatId,
+                IsMain = false
+            };
+
+            
+            ListOfPeople.AddToListOfPeople(moderator);
+
+            MessageSender.SendMessage(ChatId, AuthorizationWasSuccessful);
         }
 
-        public enum Priorities
+        private void CreateNewMainModerator()
+        {
+            Moderator moderator = new Moderator()
+            {
+                ChatId = this.ChatId,
+                IsMain = true,
+            };
+
+            ListOfPeople.AddToListOfPeople(moderator);
+            moderator.GiveAllInformation();
+            moderator.SetPriorityForStartOlympiad();
+            MessageSender.SendMessage(ChatId, AuthorizationWasSuccessful);
+        }
+
+        private void RemoveThisFromWaitList()
+        {
+            ListOfPeople.RemovePersonFromWaitList(ChatId);
+        }
+
+        private enum Priorities
         {
             NoPriority,
-            SetTeamName,
             PickStatus,
-            ComparePasswords,
-            GetReady,
-            WaitingForStart,
-            WaitingForPermissionToStart
+            GetTeamName,
+            ProcessPassword
         }
     }
 }

@@ -29,23 +29,29 @@ namespace ZanzibarBot
         private void MessageHandle(object Sender, MessageEventArgs messageEventArgs)
         {
             Message message = messageEventArgs.Message;
-            bool SuchPersonIsInitialized = false; 
-            foreach (Person somePerson in ListOfPeople.People)
+            if (message.Type != MessageType.Text)
             {
-                if (somePerson.ChatId == message.Chat.Id)
+                MessageSender.SendMessage(message.Chat.Id, "Бот не розпізнає нічого крім тектсу. Введіть коректні дані.");
+            }
+            else if (!ListOfPeople.IsPersonIdentified(message.Chat.Id) && !ListOfPeople.IsPersonInWaitList(message.Chat.Id))
+            {
+                Person person = new Person
                 {
-                    SuchPersonIsInitialized = true;
-                    break;
-                }
+                    ChatId = message.Chat.Id
+                };
+                ListOfPeople.AddToWaitList(person);
+                person.ProcessMessage(message);
             }
-            if (SuchPersonIsInitialized == false)
+            else if (ListOfPeople.IsPersonInWaitList(message.Chat.Id))
             {
-                Person newPerson = new Person();
-                newPerson.ChatId = message.Chat.Id;
-                ListOfPeople.AddPersonToList(newPerson);
+                Person person = ListOfPeople.GetPersonFromWaitList(message.Chat.Id);
+                person.ProcessMessage(message);
             }
-            Person person = ListOfPeople.GetPerson(message.Chat.Id);
-            person.ProcessMessage(message);
+            else if (ListOfPeople.IsPersonIdentified(message.Chat.Id))
+            {
+                Person person = ListOfPeople.GetPersonFromList(message.Chat.Id);
+                person.ProcessMessage(message);
+            }
         }
     }
 }

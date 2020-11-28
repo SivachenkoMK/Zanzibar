@@ -27,6 +27,7 @@ namespace ZanzibarBot
             client = new TelegramBotClient(ApiSettings.Token);
             handler = new MessageHandler(client);
             StartMessageSenderAndMessageHandler();
+            Tasks.ListOfTasks.Start();
             string ExitWord = "";
             while (ExitWord != "exit")
             {

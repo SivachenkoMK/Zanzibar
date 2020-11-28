@@ -2,14 +2,23 @@
 using System.Collections.Generic;
 using System.Text;
 using Telegram.Bot.Types;
-
+using ZanzibarBot.Tasks;
+using Telegram.Bot.Types.ReplyMarkups;
 namespace ZanzibarBot.People
 {
     class Moderator : Person
     {
-        public bool IsMain;
+        public bool IsMain = false;
+
+        private bool IsChecking = false;
+
+        private List<Attempt> AttemptsToProcess = new List<Attempt>();
+
+        public override string Status => "Moderator";
 
         private Priorities prioriy = Priorities.NoPriority;
+
+        private Attempt attemptOnCheck = new Attempt();
 
         public void GiveAllInformation()
         {
@@ -32,11 +41,12 @@ namespace ZanzibarBot.People
                     }
                 case (Priorities.StartOlympiad):
                     {
-                        if (message.Text.Contains("Розпочати"))
+                        if (message.Text.ToLower().Contains("розпочати"))
                         {
                             if (IsMain)
                             {
-                                /* Следующий шаг - создание олимпиады, работа с ней и ее начало. */
+                                OlympiadConnected.Olympiad.TryStartingOlympiad();
+                                OlympiadConnected.Timer.SetUpTimer();
                             }
                             else
                             {
@@ -50,7 +60,71 @@ namespace ZanzibarBot.People
                         MessageSender.SendMessage(ChatId, "Зачекайте початку олімпіади.");
                         break;
                     }
+                case (Priorities.CheckingTask):
+                    {
+                        if (message.Text == "Правильно")
+                        {
+                            prioriy = Priorities.StartedOlympiad;
+                            ModeratorCaptainAdapter.SetPersonalResultOfAttempt(attemptOnCheck, true);
+                            prioriy = Priorities.StartedOlympiad;
+                        }
+                        else if (message.Text == "Неправильно")
+                        {
+                            prioriy = Priorities.StartedOlympiad;
+                            ModeratorCaptainAdapter.SetPersonalResultOfAttempt(attemptOnCheck, false);
+                            prioriy = Priorities.StartedOlympiad;
+                        }
+                        else
+                        {
+                            MessageSender.SendMessage(ChatId, "Будь ласка, відправляйте коректні дані.");
+                        }
+                        break;
+                    }
+                case (Priorities.StartedOlympiad):
+                    {
+
+                        break;
+                    }
             }
+        }
+
+        private void TryCheckingNextTask()
+        {
+            if (AttemptsToProcess.Count != 0)
+            {
+                CheckTask(AttemptsToProcess[0]);
+            }
+            else
+            {
+                prioriy = Priorities.StartedOlympiad;
+            }
+        }
+
+        public void TryCheckingTask(Attempt attempt)
+        {
+            if (!IsChecking)
+                CheckTask(attempt);
+            else
+            {
+                AttemptsToProcess.Add(attempt);
+            }
+        }
+
+        public void CheckTask(Attempt attempt)
+        {
+            ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(new[]
+            {
+                new KeyboardButton("Правильно"),
+                new KeyboardButton("Неправильно")
+            })
+            {
+                ResizeKeyboard = true
+            };
+
+            MessageSender.SendMessage(ChatId, attempt.task.Clause + " " + attempt.task.Answer + "Відповідь учасника: " + attempt.answer, replyKeyboardMarkup);
+            prioriy = Priorities.CheckingTask;
+            attemptOnCheck = attempt;
+            IsChecking = true;
         }
 
         private void ProcessMessageWithoutPriority(Message message)
@@ -70,12 +144,18 @@ namespace ZanzibarBot.People
             }
         }
 
+        public override void StartOlympiad()
+        {
+            prioriy = Priorities.StartedOlympiad;
+        }
+
         private enum Priorities
         {
             StartOlympiad,
             WaitForStart,
             NoPriority,
-
+            StartedOlympiad,
+            CheckingTask
         }
     }
 }

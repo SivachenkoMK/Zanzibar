@@ -9,7 +9,5 @@ namespace ZanzibarBot.People
         public const string PasswordForModerator = "1111";
 
         public const string PasswordForMainModerator = "333";
-
-        public const int NeededAmountOfTeams = 1;
     }
 }

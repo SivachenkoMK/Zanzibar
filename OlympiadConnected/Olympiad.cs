@@ -9,53 +9,38 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.InputFiles;
 using ZanzibarBot.People;
 
-namespace ZanzibarBot
+namespace ZanzibarBot.OlympiadConnected
 {
     public static class Olympiad
     {
+        public static bool IsStarted = false;
+        public static bool IsEnded = false;
+
         public static readonly Results results;
 
-        private static DateTime StartOfOlympiadTime;
-        private static DateTime CurrentTime;
-        private static DateTime EndOfOlympiadTime;
-
-        public static bool ToStartOlimpiad = false;
-        
-        private static void SetUpTimer()
-        {
-            StartOfOlympiadTime = DateTime.Now;
-            EndOfOlympiadTime = StartOfOlympiadTime.AddHours(2);
-            while (CurrentTime < EndOfOlympiadTime)
+        private static void StartOlympiadForEveryone()
+        { 
+            foreach (Person person in ListOfPeople.People)
             {
-                CurrentTime = DateTime.Now;
+                person.StartOlympiad();
             }
-            EndOlympiad();
         }
 
-        public static async void SetUpTimerAsync()
-        {
-            await Task.Run(() => SetUpTimer());
-        }
 
         public static void TryStartingOlympiad()
         {
-            
+            if (!IsStarted)
+            {
+                StartOlympiadForEveryone();
+                IsStarted = true;
+            }
         }
 
-        public static async void TryStartingOlympiadAsync()
-        {
-            await Task.Run(() => TryStartingOlympiad());
-        }
-
-        public static void StartOlympiad()
-        {
-            SetUpTimerAsync();
-        }
-
-        private static void EndOlympiad()
+        public static void TryEndingOlympiad()
         {
             //Заглушка
-            results.SendFinalResults();
+            if (!IsEnded)
+                results.SendFinalResults();
         }
     }
 }

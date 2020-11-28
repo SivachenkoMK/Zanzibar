@@ -9,6 +9,8 @@ namespace ZanzibarBot.People
 {
     class Captain : Person
     {
+        public override string Status => "Captain";
+
         public string TeamName;
 
         private Priorities priority = Priorities.NoPriority;
@@ -16,7 +18,7 @@ namespace ZanzibarBot.People
         private Task FirstTask = ListOfTasks.GetTask(1);
         private Task SecondTask = ListOfTasks.GetTask(2);
 
-        private List<bool> CorrectTasks = new List<bool>();
+        private bool[] CorrectTasks = new bool[20];
 
         public override void ProcessMessage(Message message)
         {
@@ -29,15 +31,19 @@ namespace ZanzibarBot.People
                     }
                 case (Priorities.GetTaskForProcess):
                     {
-                        if (message.Text == $"Задача №{FirstTask.Number}")
+                        if (message.Text == FirstTask.Number.ToString())
                         {
                             MessageSender.SendMessage(ChatId, $"Введіть відповідь на задачу №{FirstTask.Number}");
                             priority = Priorities.ProcessFirstTask;
                         }
-                        else if (message.Text == $"Задача №{SecondTask.Number}")
+                        else if (message.Text == SecondTask.Number.ToString())
                         {
                             MessageSender.SendMessage(ChatId, $"Введіть відповідь на задачу №{SecondTask.Number}");
                             priority = Priorities.ProcessSecondTask;
+                        }
+                        else
+                        {
+                            MessageSender.SendMessage(ChatId, "У Вас нема такої задачі на відправку.");
                         }
                         break;
                     }
@@ -45,32 +51,54 @@ namespace ZanzibarBot.People
                     {
                         if (message.Text == FirstTask.Answer)
                         {
-                            CorrectTasks[FirstTask.Number] = true;
-                            MessageSender.SendMessage(ChatId, $"Задача №{FirstTask.Number} - правильна відповідь, задачу зараховано!");
-                            FirstTask = SecondTask;
-                            SecondTask = ListOfTasks.Tasks[FirstTask.Number + 1];
-                            MessageSender.SendMessage(ChatId, SecondTask.Clause);
+                            CorrectTasks[FirstTask.Number - 1] = true;
+                            MessageSender.SendMessage(ChatId, $"Задача №{FirstTask.Number} - правильна відповідь!");
                         }
                         else
                         {
-                            /*Moderator - check this answer*/
+                            Attempt attempt = new Attempt()
+                            {
+                                answer = message.Text,
+                                ChatId = this.ChatId,
+                                Id = long.Parse(ChatId.ToString() + FirstTask.Number.ToString()),
+                                task = FirstTask
+                            };
+                            ModeratorCaptainAdapter.SendAttemptForProcess(attempt);
                         }
+                        FirstTask = ListOfTasks.GetTask(SecondTask.Number);
+                        SecondTask = ListOfTasks.GetTask(FirstTask.Number + 1);
+                        MessageSender.SendMessage(ChatId, SecondTask.Clause);
+                        ChooseNextTasks();
+                        
                         break;
                     }
                 case (Priorities.ProcessSecondTask):
                     {
                         if (message.Text == SecondTask.Answer)
                         {
-                            CorrectTasks[SecondTask.Number] = true;
+                            CorrectTasks[SecondTask.Number - 1] = true;
                             MessageSender.SendMessage(ChatId, $"Задача №{SecondTask.Number} - правильна відповідь, задачу зараховано!");
-                            int NumeberOfNewTask = SecondTask.Number++;
-                            SecondTask = ListOfTasks.Tasks[NumeberOfNewTask];
-                            MessageSender.SendMessage(ChatId, SecondTask.Clause);
                         }
                         else
                         {
-                            /*Moderator - check this answer*/
+                            Attempt attempt = new Attempt()
+                            {
+                                answer = message.Text,
+                                ChatId = this.ChatId,
+                                Id = long.Parse(ChatId.ToString() + SecondTask.Number.ToString()),
+                                task = FirstTask
+                            };
+                            ModeratorCaptainAdapter.SendAttemptForProcess(attempt);
                         }
+                        int NumeberOfNewTask = SecondTask.Number + 1;
+                        SecondTask = ListOfTasks.GetTask(NumeberOfNewTask);
+                        MessageSender.SendMessage(ChatId, SecondTask.Clause);
+                        ChooseNextTasks();
+
+                        break;
+                    }
+                case (Priorities.StartedOlympiad):
+                    {
                         break;
                     }
             }
@@ -82,23 +110,60 @@ namespace ZanzibarBot.People
             {
                 case ("/passtask"):
                     {
-                        ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup(new[]
-                        {
-                            new KeyboardButton($"Задача №{FirstTask.Number}"),
-                            new KeyboardButton($"Задача №{SecondTask.Number}"),
-                        })
-                        {
-                            ResizeKeyboard = true,
-                            OneTimeKeyboard = true
-                        };
-                        MessageSender.SendMessage(ChatId, "Оберіть задачу, котру хочете відправити.", markup);
-                        priority = Priorities.GetTaskForProcess;
+                        ChooseNextTasks();
                         break;
                     }
-                case (""):
+                default:
                     {
                         break;
                     }
+            }
+        }
+
+        private void ChooseNextTasks()
+        {
+            ReplyKeyboardMarkup markup = ReplyKeyboardOfTasksToPass();
+            MessageSender.SendMessage(ChatId, "Оберіть задачу, котру хочете відправити.", markup);
+            priority = Priorities.GetTaskForProcess;
+        }
+
+        public override void StartOlympiad()
+        {
+            MessageSender.SendMessage(ChatId, "Олімпіаду розпочато!");
+
+            MessageSender.SendMessage(ChatId, FirstTask.Clause);
+            MessageSender.SendMessage(ChatId, SecondTask.Clause);
+
+            ReplyKeyboardMarkup replyKeyboardMarkup = ReplyKeyboardOfTasksToPass();
+            MessageSender.SendMessage(ChatId, "Щоб відправити відповідь на одну з задач натисніть кнопку з номером задачі.", replyKeyboardMarkup);
+            priority = Priorities.GetTaskForProcess;
+        }
+
+        private ReplyKeyboardMarkup ReplyKeyboardOfTasksToPass()
+        {
+            ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(new[]
+            {
+                new KeyboardButton(FirstTask.Number.ToString()),
+                new KeyboardButton(SecondTask.Number.ToString())
+            })
+            {
+                ResizeKeyboard = true
+            };
+            priority = Priorities.GetTaskForProcess;
+
+            return replyKeyboardMarkup;
+        }
+
+        public void SetResultForAttempt(Attempt attempt)
+        {
+            CorrectTasks[attempt.task.Number] = attempt.Result;
+            if (attempt.Result == true)
+            {
+                MessageSender.SendMessage(ChatId, attempt.task.Number + " - правильно.");
+            }
+            else
+            {
+                MessageSender.SendMessage(ChatId, attempt.task.Number + " - неправильно.");
             }
         }
 
@@ -108,7 +173,8 @@ namespace ZanzibarBot.People
             ProcessFirstTask,
             ProcessSecondTask,
             NoPriority,
-            GetTaskForProcess
+            GetTaskForProcess,
+            StartedOlympiad
         }
     }
 }

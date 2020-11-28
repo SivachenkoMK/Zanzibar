@@ -11,7 +11,7 @@ namespace ZanzibarBot.People
     {
         private static List<Person> WaitList = new List<Person>();
 
-        private static List<Person> People = new List<Person>();
+        public static List<Person> People = new List<Person>();
 
         public static bool IsPersonIdentified(long chatId)
         {
@@ -71,11 +71,11 @@ namespace ZanzibarBot.People
             }
         }
 
-        public static Person GetPersonFromWaitList(long Id)
+        public static Person GetPersonFromWaitList(long ChatId)
         {
             foreach (Person person in WaitList)
             {
-                if (person.ChatId == Id)
+                if (person.ChatId == ChatId)
                 {
                     return person;
                 }
@@ -83,11 +83,11 @@ namespace ZanzibarBot.People
             throw new NotImplementedException("No such person initialized");
         }
 
-        public static Person GetPersonFromList(long Id)
+        public static Person GetPersonFromList(long ChatId)
         {
             foreach (Person person in People)
             {
-                if (person.ChatId == Id)
+                if (person.ChatId == ChatId)
                 {
                     return person;
                 }

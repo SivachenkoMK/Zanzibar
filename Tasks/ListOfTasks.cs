@@ -26,14 +26,38 @@ namespace ZanzibarBot.Tasks
         private readonly static Task task18 = new Task(18, "Задача 18: 18 + 18 = ?", "36");
         private readonly static Task task19 = new Task(19, "Задача 19: 19 + 19 = ?", "38");
         private readonly static Task task20 = new Task(20, "Задача 20: 20 + 20 = ?", "40");
-        
-        public static List<Task> Tasks = new List<Task> 
-        { 
+
+        public static List<Task> Tasks = new List<Task>();
+        /*{ 
             task1, task2, task3, task4, task5,
             task6, task7, task8, task9, task10,
             task11, task12, task13, task14, task15,
             task16, task17, task18, task19, task20
-        };
+        };*/
+
+        public static void Start()
+        {
+            Tasks.Add(task1);
+            Tasks.Add(task2);
+            Tasks.Add(task3);
+            Tasks.Add(task4);
+            Tasks.Add(task5);
+            Tasks.Add(task6);
+            Tasks.Add(task7);
+            Tasks.Add(task8);
+            Tasks.Add(task9);
+            Tasks.Add(task10);
+            Tasks.Add(task11);
+            Tasks.Add(task12);
+            Tasks.Add(task13);
+            Tasks.Add(task14);
+            Tasks.Add(task15);
+            Tasks.Add(task16);
+            Tasks.Add(task17);
+            Tasks.Add(task18);
+            Tasks.Add(task19);
+            Tasks.Add(task20);
+        }
 
         public static Task GetTask(int Number)
         {

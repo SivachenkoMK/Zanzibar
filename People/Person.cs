@@ -11,14 +11,20 @@ namespace ZanzibarBot.People
     public class Person
     {
         private const string AuthorizationWasSuccessful = "Авторізація пройшла успішно.";
-     
+
+        public virtual string Status { get; } = "Person";
+
         public long ChatId;
 
         private Priorities priority;
 
         public virtual void ProcessMessage(Message message)
         {
-            if (message.Text == "/start" || message.Text == "/changestatus")
+            if (OlympiadConnected.Olympiad.IsStarted)
+            {
+                MessageSender.SendMessage(ChatId, "Ви вже не можете доєднатись - олімпіаду розпочато.");
+            }
+            else if (message.Text == "/start" || message.Text == "/changestatus")
             {
                 MessageSender.SendMessage(ChatId, "Привіт. Я бот, котрий допоможе Вам з олімпіадою «Занзібар».");
                 PickStatusDisplay();
@@ -153,10 +159,17 @@ namespace ZanzibarBot.People
             MessageSender.SendMessage(ChatId, AuthorizationWasSuccessful);
         }
 
+        public virtual void StartOlympiad()
+        {
+            RemoveThisFromWaitList();
+            MessageSender.SendMessage(ChatId, "Ви вже не можете доєднатись - олімпіаду розпочато.");
+        }
+
         private void RemoveThisFromWaitList()
         {
             ListOfPeople.RemovePersonFromWaitList(ChatId);
         }
+
 
         private enum Priorities
         {

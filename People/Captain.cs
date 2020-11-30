@@ -86,7 +86,7 @@ namespace ZanzibarBot.People
                                 answer = message.Text,
                                 ChatId = this.ChatId,
                                 Id = long.Parse(ChatId.ToString() + SecondTask.Number.ToString()),
-                                task = FirstTask
+                                task = SecondTask
                             };
                             ModeratorCaptainAdapter.SendAttemptForProcess(attempt);
                         }

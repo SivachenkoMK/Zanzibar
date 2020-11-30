@@ -6,7 +6,7 @@ namespace ZanzibarBot
 {
     public static class ApiSettings
     {
-        public static string Token = "1438130772:AAG1DZEaN5Dj-vAXq_s7YiqPVWMyX8yGpbs";
+        public static string Token = "1438130772:AAFiSnHfZPB2kFloF8bQq2NJ67jlqcyTQqE";
 
         public static string Tag = "ZanzibarMO_Bot";
     }

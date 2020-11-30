@@ -66,13 +66,13 @@ namespace ZanzibarBot.People
                         {
                             prioriy = Priorities.StartedOlympiad;
                             ModeratorCaptainAdapter.SetPersonalResultOfAttempt(attemptOnCheck, true);
-                            prioriy = Priorities.StartedOlympiad;
+                            TryCheckingNextTask();
                         }
                         else if (message.Text == "Неправильно")
                         {
                             prioriy = Priorities.StartedOlympiad;
                             ModeratorCaptainAdapter.SetPersonalResultOfAttempt(attemptOnCheck, false);
-                            prioriy = Priorities.StartedOlympiad;
+                            TryCheckingNextTask();
                         }
                         else
                         {
@@ -92,11 +92,14 @@ namespace ZanzibarBot.People
         {
             if (AttemptsToProcess.Count != 0)
             {
-                CheckTask(AttemptsToProcess[0]);
+                Attempt attemptToCheck = AttemptsToProcess[0];
+                CheckTask(attemptToCheck);
+                AttemptsToProcess.RemoveAt(0);
             }
             else
             {
                 prioriy = Priorities.StartedOlympiad;
+                IsChecking = false;
             }
         }
 
@@ -118,10 +121,11 @@ namespace ZanzibarBot.People
                 new KeyboardButton("Неправильно")
             })
             {
-                ResizeKeyboard = true
+                ResizeKeyboard = true,
+                OneTimeKeyboard = true
             };
 
-            MessageSender.SendMessage(ChatId, attempt.task.Clause + " " + attempt.task.Answer + "Відповідь учасника: " + attempt.answer, replyKeyboardMarkup);
+            MessageSender.SendMessage(ChatId, attempt.task.Clause + "\nПравильна відповідь: " + attempt.task.Answer + "\nВідповідь учасника: " + attempt.answer, replyKeyboardMarkup);
             prioriy = Priorities.CheckingTask;
             attemptOnCheck = attempt;
             IsChecking = true;

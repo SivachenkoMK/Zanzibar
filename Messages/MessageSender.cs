@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Telegram.Bot;
@@ -18,9 +19,15 @@ namespace ZanzibarBot
             client = someClient;
         }
 
-        public static void SendMessage(long chatId, InputOnlineFile document)
+        public async static void SendResults(long chatId)
         {
-            client?.SendDocumentAsync(chatId, document);
+            using (FileStream fs = System.IO.File.OpenRead(OlympiadConnected.Results.CurrentDirection))
+            {
+                NotifyingInputOnlineFile onlineFile = new NotifyingInputOnlineFile(fs, fs.Length, "Results.xlsx");
+                onlineFile.OnProgressUpdated += (s, progress)
+                    => Console.WriteLine($"Uploaded {progress.Uploaded} out of {progress.TotalSize} bytes. Progress: {progress.ProgressPercentage} %");
+                await client.SendDocumentAsync(chatId, onlineFile);
+            }
         }
 
         public static void SendMessage(long chatId, string text)

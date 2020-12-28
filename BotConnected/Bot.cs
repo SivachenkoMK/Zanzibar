@@ -25,6 +25,7 @@ namespace ZanzibarBot
         public void Start()
         {
             client = new TelegramBotClient(ApiSettings.Token);
+            OlympiadConnected.Results.bot = client;
             handler = new MessageHandler(client);
             StartMessageSenderAndMessageHandler();
             Tasks.ListOfTasks.Start();
@@ -33,6 +34,7 @@ namespace ZanzibarBot
             {
                 ExitWord = Console.ReadLine();
             }
+            /**/OlympiadConnected.Results.xlApp.Quit();/**/
             client.StopReceiving();
         }
     }

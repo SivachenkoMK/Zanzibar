@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 using ZanzibarBot.Tasks;
+using Telegram.Bot;
+using Telegram.Bot.Types.InputFiles;
 
 namespace ZanzibarBot.People
 {
@@ -113,7 +116,12 @@ namespace ZanzibarBot.People
                         ChooseNextTasks();
                         break;
                     }
-                default:
+               case ("/getresults"):
+                    {
+                        OlympiadConnected.Results.SendCurrentResults(ChatId);
+                        break;
+                    }
+               default:
                     {
                         break;
                     }

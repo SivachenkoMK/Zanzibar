@@ -16,8 +16,6 @@ namespace ZanzibarBot.OlympiadConnected
         public static bool IsStarted = false;
         public static bool IsEnded = false;
 
-        public static readonly Results results;
-
         private static void StartOlympiadForEveryone()
         { 
             foreach (Person person in ListOfPeople.People)
@@ -38,9 +36,7 @@ namespace ZanzibarBot.OlympiadConnected
 
         public static void TryEndingOlympiad()
         {
-            //Заглушка
-            if (!IsEnded)
-                results.SendFinalResults();
+
         }
     }
 }

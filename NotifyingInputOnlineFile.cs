@@ -76,3 +76,5 @@ namespace Telegram.Bot.Types.InputFiles
         }
     }
 }
+
+// author: https://github.com/MihaZupan

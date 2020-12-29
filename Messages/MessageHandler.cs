@@ -33,6 +33,10 @@ namespace ZanzibarBot
             {
                 MessageSender.SendMessage(message.Chat.Id, "Бот не розпізнає нічого крім тектсу. Введіть коректні дані.");
             }
+            else if (message.Text == "test")
+            {
+                MessageSender.SendResults(message.Chat.Id);
+            }
             else if (!ListOfPeople.IsPersonIdentified(message.Chat.Id) && !ListOfPeople.IsPersonInWaitList(message.Chat.Id))
             {
                 Person person = new Person

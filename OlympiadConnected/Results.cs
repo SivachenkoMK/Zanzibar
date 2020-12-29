@@ -16,7 +16,7 @@ namespace ZanzibarBot.OlympiadConnected
 
         public static string CurrentDirection = @"D:\Programming\C#\TelegramBots\Zanzibar\results\Results.xlsx";
 
-        private static Workbook workbook
+        public static Workbook workbook
         {
             get
             {
@@ -40,10 +40,23 @@ namespace ZanzibarBot.OlympiadConnected
             }
         }
 
-        public static async void SendCurrentResults(long chatId)
+        public static void WriteCorrectInWorksheet(int teamNumber, int taskNumber)
+        {
+            Microsoft.Office.Interop.Excel.Range r = worksheet.Cells[teamNumber + 1, taskNumber + 1] as Microsoft.Office.Interop.Excel.Range;
+            r.Value2 = 1;
+            workbook.Save();
+        }
+
+        public static void WriteIncorrectInWorksheet(int teamNumber, int taskNumber)
+        {
+            Microsoft.Office.Interop.Excel.Range r = worksheet.Cells[teamNumber + 1, taskNumber + 1] as Microsoft.Office.Interop.Excel.Range;
+            r.Value2 = 0;
+            workbook.Save();
+        }
+
+        public static void SendCurrentResults(long chatId)
         {
             MessageSender.SendResults(chatId);
-
         }
     }
 }

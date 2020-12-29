@@ -1,23 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace ZanzibarBot.OlympiadConnected
 {
-    public static class Timer
+    public class Timer
     {
-        private static DateTime StartOfOlympiadTime;
-        private static DateTime EndOfOlympiadTime;
+        private  DateTime StartOfOlympiadTime;
+        private  DateTime EndOfOlympiadTime;
 
-        public static void SetUpTimer()
-        {/*
+        private Thread thread;
+
+        public Timer()
+        {
             StartOfOlympiadTime = DateTime.Now;
             EndOfOlympiadTime = StartOfOlympiadTime.AddHours(2);
+            thread = new Thread(CountTime);
+            thread.Name = "name";
+            thread.IsBackground = true;
+            thread.Start();
+        }
+
+        private void CountTime(object obj)
+        {
             while (DateTime.Now < EndOfOlympiadTime)
             {
 
             }
             Olympiad.TryEndingOlympiad();
-        */}
+        }
     }
 }

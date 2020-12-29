@@ -5,6 +5,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 using ZanzibarBot.People;
+using _TeamsInfo = ZanzibarBot.OlympiadConnected.TeamsInfo;
 
 namespace ZanzibarBot.People
 {
@@ -24,77 +25,30 @@ namespace ZanzibarBot.People
             {
                 MessageSender.SendMessage(ChatId, "Ви вже не можете доєднатись - олімпіаду розпочато.");
             }
-            else if (message.Text == "/start" || message.Text == "/changestatus")
+            else if (message.Text == "/start")
             {
                 MessageSender.SendMessage(ChatId, "Привіт. Я бот, котрий допоможе Вам з олімпіадою «Занзібар».");
-                PickStatusDisplay();
+                EnterPasswordDisplay();
             }
-            else if (priority == Priorities.PickStatus)
+            else if (message.Text == "/changestatus")
             {
-                if (message.Text == "Captain")
-                {
-                    AskTeamNameDisplay();
-                }
-                else if (message.Text == "Moderator")
-                {
-                    AskPasswordDisplay();
-                }
-            }
-            else if (priority == Priorities.GetTeamName)
-            {
-                ProcessTeamNameDisplay(message);
+                EnterPasswordDisplay();
             }
             else if (priority == Priorities.ProcessPassword)
             {
-                ProcessModeratorPasswordForCorrectness(message);
+                ProcessPasswordForCorrectness(message);
             }
         }
 
-        private void PickStatusDisplay()
+        private void EnterPasswordDisplay()
         {
-            ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup(new[]
-                {
-                    new KeyboardButton("Captain"),
-                    new KeyboardButton("Moderator"),
-                })
-            {
-                ResizeKeyboard = true,
-                OneTimeKeyboard = true
-            };
-            MessageSender.SendMessage(ChatId, "Оберіть свій статус. Якщо Ви капітан команди - оберіть Captain, якщо перевіряючий - оберіть Moderator", markup);
-            priority = Priorities.PickStatus;
-        }
-
-        private void AskTeamNameDisplay()
-        {
-            MessageSender.SendMessage(ChatId, "Введіть назву команди.");
-            priority = Priorities.GetTeamName;
-        }
-
-        private void AskPasswordDisplay()
-        {
-            MessageSender.SendMessage(ChatId, "Введіть пароль.");
+            MessageSender.SendMessage(ChatId, "Введіть пароль");
             priority = Priorities.ProcessPassword;
         }
 
-        private void ProcessTeamNameDisplay(Message message)
+        private void CreateNewCaptain(string supposedPassword)
         {
-            if (message.Text.Length > 16)
-            {
-                MessageSender.SendMessage(ChatId, "Завелика назва команди. Спробуйте ще раз.");
-            }
-            else
-            {
-                CreateNewCaptain(message);
-
-                RemoveThisFromWaitList();
-                priority = Priorities.NoPriority;
-            }
-        }
-
-        private void CreateNewCaptain(Message message)
-        {
-            string teamName = message.Text;
+            string teamName = _TeamsInfo.TeamNames[_TeamsInfo.GetNumberByTeamPassword(supposedPassword) - 1];
 
             Captain captain = new Captain
             {
@@ -107,27 +61,44 @@ namespace ZanzibarBot.People
             MessageSender.SendMessage(ChatId, AuthorizationWasSuccessful);
         }
 
-        private void ProcessModeratorPasswordForCorrectness(Message message)
+        private void ProcessPasswordForCorrectness(Message message)
         {
             string supposedPassword = message.Text;
 
-            if (supposedPassword == PeopleData.PasswordForModerator)
+            if (_TeamsInfo.IsOneOfPasswordsForCaptain(supposedPassword))
             {
-                CreateNewModerator();
-
-                RemoveThisFromWaitList();
-                priority = Priorities.NoPriority;
-            }
-            else if (supposedPassword == PeopleData.PasswordForMainModerator)
-            {
-                CreateNewMainModerator();
+                CreateNewCaptain(supposedPassword);
 
                 RemoveThisFromWaitList();
                 priority = Priorities.NoPriority;
             }
             else
             {
-                MessageSender.SendMessage(ChatId, "Неправильний пароль. Спробуйте знову, або скористуйтеся командою /changestatus, щоб змінити статус на капітана команди.");
+
+                switch (supposedPassword)
+                {
+                    case (PeopleData.PasswordForModerator):
+                        {
+                            CreateNewModerator();
+
+                            RemoveThisFromWaitList();
+                            priority = Priorities.NoPriority;
+                            break;
+                        }
+                    case (PeopleData.PasswordForMainModerator):
+                        {
+                            CreateNewMainModerator();
+
+                            RemoveThisFromWaitList();
+                            priority = Priorities.NoPriority;
+                            break;
+                        }
+                    default:
+                        {
+                            MessageSender.SendMessage(ChatId, "Неправильний пароль. Спробуйте ще раз.");
+                            break;
+                        }
+                }
             }
         }
 
@@ -170,12 +141,14 @@ namespace ZanzibarBot.People
             ListOfPeople.RemovePersonFromWaitList(ChatId);
         }
 
+        public virtual void EndOlympiad()
+        {
+
+        }
 
         private enum Priorities
         {
             NoPriority,
-            PickStatus,
-            GetTeamName,
             ProcessPassword
         }
     }

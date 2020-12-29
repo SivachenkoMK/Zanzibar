@@ -16,12 +16,19 @@ namespace ZanzibarBot.People
 
         public string TeamName;
 
+        public int NumberOfRowInExcelWorksheet
+        {
+            get
+            {
+                return OlympiadConnected.TeamsInfo.GetNumberByTeamName(TeamName);
+            }
+        }
+        
+
         private Priorities priority = Priorities.NoPriority;
 
         private Task FirstTask = ListOfTasks.GetTask(1);
         private Task SecondTask = ListOfTasks.GetTask(2);
-
-        private bool[] CorrectTasks = new bool[20];
 
         public override void ProcessMessage(Message message)
         {
@@ -39,22 +46,33 @@ namespace ZanzibarBot.People
                             MessageSender.SendMessage(ChatId, $"Введіть відповідь на задачу №{FirstTask.Number}");
                             priority = Priorities.ProcessFirstTask;
                         }
-                        else if (message.Text == SecondTask.Number.ToString())
+                        else if (message.Text == SecondTask.Number.ToString() && message.Text != "-1")
                         {
                             MessageSender.SendMessage(ChatId, $"Введіть відповідь на задачу №{SecondTask.Number}");
                             priority = Priorities.ProcessSecondTask;
                         }
-                        else
+                        else if (message.Text == "/getresults")
+                        {
+                            OlympiadConnected.Results.workbook.Close();
+                            OlympiadConnected.Results.SendCurrentResults(ChatId);
+                            ChooseNextTasks();
+                        }
+                        else 
                         {
                             MessageSender.SendMessage(ChatId, "У Вас нема такої задачі на відправку.");
+                            ChooseNextTasks();
                         }
                         break;
                     }
                 case (Priorities.ProcessFirstTask):
                     {
-                        if (message.Text == FirstTask.Answer)
+                        if (FirstTask.Number == -1)
                         {
-                            CorrectTasks[FirstTask.Number - 1] = true;
+                            OlympiadConnected.Olympiad.TryEndingOlympiad();
+                        }
+                        else if (message.Text == FirstTask.Answer)
+                        {
+                            OlympiadConnected.Results.WriteCorrectInWorksheet(NumberOfRowInExcelWorksheet, FirstTask.Number);
                             MessageSender.SendMessage(ChatId, $"Задача №{FirstTask.Number} - правильна відповідь!");
                         }
                         else
@@ -68,18 +86,46 @@ namespace ZanzibarBot.People
                             };
                             ModeratorCaptainAdapter.SendAttemptForProcess(attempt);
                         }
-                        FirstTask = ListOfTasks.GetTask(SecondTask.Number);
-                        SecondTask = ListOfTasks.GetTask(FirstTask.Number + 1);
-                        MessageSender.SendMessage(ChatId, SecondTask.Clause);
-                        ChooseNextTasks();
-                        
+                        if (SecondTask.Number < 20 && SecondTask.Number != -1)
+                        {
+                            FirstTask = ListOfTasks.GetTask(SecondTask.Number);
+                            SecondTask = ListOfTasks.GetTask(SecondTask.Number + 1);
+                            MessageSender.SendMessage(ChatId, SecondTask.Clause);
+                            ChooseNextTasks();
+                        }
+                        else if (SecondTask.Number == 20)
+                        {
+                            FirstTask = ListOfTasks.GetTask(20);
+                            SecondTask = new Task()
+                            {
+                                Number = -1
+                            };
+                            MessageSender.SendMessage(ChatId, FirstTask.Clause);
+                            ChooseNextTasks();
+                        }
+                        else if (SecondTask.Number == -1)
+                        {
+                            FirstTask = new Task()
+                            {
+                                Number = -1
+                            };
+                            OlympiadConnected.Olympiad.TryEndingOlympiad();
+                        }
+                        else
+                        {
+                            OlympiadConnected.Olympiad.TryEndingOlympiad();
+                        }
                         break;
                     }
                 case (Priorities.ProcessSecondTask):
                     {
-                        if (message.Text == SecondTask.Answer)
+                        if (SecondTask.Number == -1)
                         {
-                            CorrectTasks[SecondTask.Number - 1] = true;
+                            
+                        }
+                        else if (message.Text == SecondTask.Answer)
+                        {
+                            OlympiadConnected.Results.WriteCorrectInWorksheet(NumberOfRowInExcelWorksheet, SecondTask.Number);
                             MessageSender.SendMessage(ChatId, $"Задача №{SecondTask.Number} - правильна відповідь, задачу зараховано!");
                         }
                         else
@@ -93,15 +139,41 @@ namespace ZanzibarBot.People
                             };
                             ModeratorCaptainAdapter.SendAttemptForProcess(attempt);
                         }
-                        int NumeberOfNewTask = SecondTask.Number + 1;
-                        SecondTask = ListOfTasks.GetTask(NumeberOfNewTask);
-                        MessageSender.SendMessage(ChatId, SecondTask.Clause);
-                        ChooseNextTasks();
+                        if (SecondTask.Number != 20)
+                        {
+                            int NumeberOfNewTask = SecondTask.Number + 1;
+                            SecondTask = ListOfTasks.GetTask(NumeberOfNewTask);
+                            MessageSender.SendMessage(ChatId, SecondTask.Clause);
+                            ChooseNextTasks();
+                        }
+                        else
+                        {
+                            SecondTask = new Task()
+                            {
+                                Number = -1
+                            };
+                            MessageSender.SendMessage(ChatId, FirstTask.Clause);
+                            ChooseNextTasks();
+                        }
 
                         break;
                     }
                 case (Priorities.StartedOlympiad):
                     {
+                        break;
+                    }
+                case (Priorities.EndedOlympiad):
+                    {
+                        if (message.Text == "/getresults")
+                        {
+                            OlympiadConnected.Results.workbook.Close();
+                            OlympiadConnected.Results.SendCurrentResults(ChatId);
+                            MessageSender.SendMessage(ChatId, "Перевіряючі, можливло, ще не закінчили перевірку.");
+                        }
+                        else
+                        {
+                            MessageSender.SendMessage(ChatId, "Олімпіаду вже закінчено, але Ви можете перевірити результати.");
+                        }
                         break;
                     }
             }
@@ -111,14 +183,16 @@ namespace ZanzibarBot.People
         {
             switch (message.Text)
             {
-                case ("/passtask"):
+               case ("/getresults"):
                     {
+                        OlympiadConnected.Results.workbook.Close();
+                        OlympiadConnected.Results.SendCurrentResults(ChatId);
                         ChooseNextTasks();
                         break;
                     }
-               case ("/getresults"):
+                case ("/passtask"):
                     {
-                        OlympiadConnected.Results.SendCurrentResults(ChatId);
+                        ChooseNextTasks();
                         break;
                     }
                default:
@@ -139,6 +213,13 @@ namespace ZanzibarBot.People
         {
             MessageSender.SendMessage(ChatId, "Олімпіаду розпочато!");
 
+            MessageSender.SendMessage(ChatId,
+@"Вітаю! 
+Внизу є дві кнопки з номерами задач, котрі ви можете відправити. 
+Натискаючи на одну з них, ви маете написати відповідь на обрану задачу.
+Команда /getresults - корисна функція для перегляду інформації про стан олімпіади на даний момент.
+Успіхів!");
+
             MessageSender.SendMessage(ChatId, FirstTask.Clause);
             MessageSender.SendMessage(ChatId, SecondTask.Clause);
 
@@ -149,30 +230,58 @@ namespace ZanzibarBot.People
 
         private ReplyKeyboardMarkup ReplyKeyboardOfTasksToPass()
         {
-            ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(new[]
+            if (SecondTask.Number != -1 && FirstTask.Number != -1)
             {
-                new KeyboardButton(FirstTask.Number.ToString()),
-                new KeyboardButton(SecondTask.Number.ToString())
-            })
-            {
-                ResizeKeyboard = true
-            };
-            priority = Priorities.GetTaskForProcess;
+                ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(new[]
+                {
+                    new KeyboardButton(FirstTask.Number.ToString()),
+                    new KeyboardButton(SecondTask.Number.ToString())
+                })
+                {
+                    ResizeKeyboard = true
+                };
+                priority = Priorities.GetTaskForProcess;
 
-            return replyKeyboardMarkup;
+                return replyKeyboardMarkup;
+            }
+            else if (SecondTask.Number == -1 && FirstTask.Number != -1)
+            {
+                ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(new[]
+                {
+                    new KeyboardButton(FirstTask.Number.ToString()),
+                })
+                {
+                    ResizeKeyboard = true
+                };
+                priority = Priorities.GetTaskForProcess;
+
+                return replyKeyboardMarkup;
+            }
+            else
+            {
+                OlympiadConnected.Olympiad.TryEndingOlympiad();
+                return new ReplyKeyboardMarkup();
+            }
+
         }
 
         public void SetResultForAttempt(Attempt attempt)
         {
-            CorrectTasks[attempt.task.Number] = attempt.Result;
-            if (attempt.Result == true)
+            if (attempt.Result)
             {
+                OlympiadConnected.Results.WriteCorrectInWorksheet(NumberOfRowInExcelWorksheet, attempt.task.Number);
                 MessageSender.SendMessage(ChatId, attempt.task.Number + " - правильно.");
             }
             else
             {
+                OlympiadConnected.Results.WriteIncorrectInWorksheet(NumberOfRowInExcelWorksheet, attempt.task.Number);
                 MessageSender.SendMessage(ChatId, attempt.task.Number + " - неправильно.");
             }
+        }
+
+        public override void EndOlympiad()
+        {
+            priority = Priorities.EndedOlympiad;
         }
 
         private enum Priorities
@@ -182,7 +291,8 @@ namespace ZanzibarBot.People
             ProcessSecondTask,
             NoPriority,
             GetTaskForProcess,
-            StartedOlympiad
+            StartedOlympiad,
+            EndedOlympiad
         }
     }
 }

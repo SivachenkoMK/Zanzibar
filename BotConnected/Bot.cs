@@ -29,12 +29,13 @@ namespace ZanzibarBot
             handler = new MessageHandler(client);
             StartMessageSenderAndMessageHandler();
             Tasks.ListOfTasks.Start();
+            OlympiadConnected.TeamsInfo.InitializeTeams();
             string ExitWord = "";
             while (ExitWord != "exit")
             {
                 ExitWord = Console.ReadLine();
             }
-            /**/OlympiadConnected.Results.xlApp.Quit();/**/
+            OlympiadConnected.Results.xlApp.Quit();
             client.StopReceiving();
         }
     }

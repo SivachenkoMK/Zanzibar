@@ -46,7 +46,7 @@ namespace ZanzibarBot.People
                             if (IsMain)
                             {
                                 OlympiadConnected.Olympiad.TryStartingOlympiad();
-                                OlympiadConnected.Timer.SetUpTimer();
+                                OlympiadConnected.Timer timer = new OlympiadConnected.Timer();
                             }
                             else
                             {

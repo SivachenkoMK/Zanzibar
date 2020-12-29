@@ -36,7 +36,34 @@ namespace ZanzibarBot.OlympiadConnected
 
         public static void TryEndingOlympiad()
         {
+            if (!IsEnded)
+                EndOlympiad();
+        }
 
+        private static void EndOlympiad()
+        {
+            foreach (Person person in ListOfPeople.People)
+            {
+                MessageSender.SendMessage(person.ChatId, "Олімпіаду закінчено.");
+                Results.workbook.Close();
+                Results.SendCurrentResults(person.ChatId);
+            }
+            foreach (Person person in ListOfPeople.People)
+            {
+                if (person.Status == "Captain")
+                {
+                    person.EndOlympiad();
+                }
+            }
+            foreach (Person person in ListOfPeople.People)
+            {
+                if (person.Status == "Moderator")
+                {
+                    MessageSender.SendMessage(person.ChatId, "Якщо ще не закінчили перевіряти - закінчуйте.");
+                }
+            }
+            Console.WriteLine("Олімпіаду закінчено");
+            IsEnded = true;
         }
     }
 }

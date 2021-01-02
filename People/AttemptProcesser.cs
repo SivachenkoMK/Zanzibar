@@ -5,7 +5,7 @@ using ZanzibarBot.Tasks;
 
 namespace ZanzibarBot.People
 {
-    public static class ModeratorCaptainAdapter
+    public static class AttemptProcesser
     {
         private static List<Attempt> attempts = new List<Attempt>();
 
@@ -50,17 +50,17 @@ namespace ZanzibarBot.People
 
         public static void SetPersonalResultOfAttempt(Attempt attempt, bool IsCorrect)
         {
-            bool IsExist = false;
+            bool SuchAttemptFound = false;
             foreach (Attempt existingAttempt in attempts)
             {
                 if (existingAttempt.Id == attempt.Id)
                 {
                     attempt = existingAttempt;
-                    IsExist = true;
+                    SuchAttemptFound = true;
                     break;
                 }
             }
-            if (!IsExist)
+            if (!SuchAttemptFound)
             {
                 attempts.Add(attempt);
             }

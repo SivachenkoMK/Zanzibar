@@ -14,6 +14,11 @@ namespace ZanzibarBot.OlympiadConnected
 
         public Timer()
         {
+            
+        }
+
+        public void Start()
+        {
             StartOfOlympiadTime = DateTime.Now;
             EndOfOlympiadTime = StartOfOlympiadTime.AddHours(2);
             thread = new Thread(CountTime);

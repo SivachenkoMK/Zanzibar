@@ -16,6 +16,11 @@ namespace ZanzibarBot.People
 
         public string TeamName;
 
+        public void Start()
+        {
+            Front.CaptainDisplay.DisplayReady(ChatId);
+        }
+
         public int NumberOfRowInExcelWorksheet
         {
             get
@@ -43,24 +48,24 @@ namespace ZanzibarBot.People
                     {
                         if (message.Text == FirstTask.Number.ToString())
                         {
-                            MessageSender.SendMessage(ChatId, $"Введіть відповідь на задачу №{FirstTask.Number}");
+                            Front.CaptainDisplay.DisplayRequestForEnteringAnswer(ChatId, FirstTask.Number);
                             priority = Priorities.ProcessFirstTask;
                         }
                         else if (message.Text == SecondTask.Number.ToString() && message.Text != "-1")
-                        {
-                            MessageSender.SendMessage(ChatId, $"Введіть відповідь на задачу №{SecondTask.Number}");
+                        { 
+                            Front.CaptainDisplay.DisplayRequestForEnteringAnswer(ChatId, SecondTask.Number);
                             priority = Priorities.ProcessSecondTask;
                         }
                         else if (message.Text == "/getresults")
                         {
                             OlympiadConnected.Results.workbook.Close();
                             OlympiadConnected.Results.SendCurrentResults(ChatId);
-                            ChooseNextTasks();
+                            ChooseTaskToAnswer();
                         }
                         else 
                         {
-                            MessageSender.SendMessage(ChatId, "У Вас нема такої задачі на відправку.");
-                            ChooseNextTasks();
+                            Front.CaptainDisplay.NoSuchTaskToChoose(ChatId);
+                            ChooseTaskToAnswer();
                         }
                         break;
                     }
@@ -73,7 +78,7 @@ namespace ZanzibarBot.People
                         else if (message.Text == FirstTask.Answer)
                         {
                             OlympiadConnected.Results.WriteCorrectInWorksheet(NumberOfRowInExcelWorksheet, FirstTask.Number);
-                            MessageSender.SendMessage(ChatId, $"Задача №{FirstTask.Number} - правильна відповідь!");
+                            Front.CaptainDisplay.InformAboutTaskCorrectness(ChatId, FirstTask.Number);
                         }
                         else
                         {
@@ -84,14 +89,14 @@ namespace ZanzibarBot.People
                                 Id = long.Parse(ChatId.ToString() + FirstTask.Number.ToString()),
                                 task = FirstTask
                             };
-                            ModeratorCaptainAdapter.SendAttemptForProcess(attempt);
+                            AttemptProcesser.SendAttemptForProcess(attempt);
                         }
                         if (SecondTask.Number < 20 && SecondTask.Number != -1)
                         {
                             FirstTask = ListOfTasks.GetTask(SecondTask.Number);
                             SecondTask = ListOfTasks.GetTask(SecondTask.Number + 1);
-                            MessageSender.SendMessage(ChatId, SecondTask.Clause);
-                            ChooseNextTasks();
+                            Front.CaptainDisplay.SendClauseOfTask(ChatId, SecondTask);
+                            ChooseTaskToAnswer();
                         }
                         else if (SecondTask.Number == 20)
                         {
@@ -100,8 +105,8 @@ namespace ZanzibarBot.People
                             {
                                 Number = -1
                             };
-                            MessageSender.SendMessage(ChatId, FirstTask.Clause);
-                            ChooseNextTasks();
+                            Front.CaptainDisplay.SendClauseOfTask(ChatId, FirstTask);
+                            ChooseTaskToAnswer();
                         }
                         else if (SecondTask.Number == -1)
                         {
@@ -126,7 +131,7 @@ namespace ZanzibarBot.People
                         else if (message.Text == SecondTask.Answer)
                         {
                             OlympiadConnected.Results.WriteCorrectInWorksheet(NumberOfRowInExcelWorksheet, SecondTask.Number);
-                            MessageSender.SendMessage(ChatId, $"Задача №{SecondTask.Number} - правильна відповідь, задачу зараховано!");
+                            Front.CaptainDisplay.InformAboutTaskCorrectness(ChatId, SecondTask.Number);
                         }
                         else
                         {
@@ -137,14 +142,14 @@ namespace ZanzibarBot.People
                                 Id = long.Parse(ChatId.ToString() + SecondTask.Number.ToString()),
                                 task = SecondTask
                             };
-                            ModeratorCaptainAdapter.SendAttemptForProcess(attempt);
+                            AttemptProcesser.SendAttemptForProcess(attempt);
                         }
                         if (SecondTask.Number != 20)
                         {
                             int NumeberOfNewTask = SecondTask.Number + 1;
                             SecondTask = ListOfTasks.GetTask(NumeberOfNewTask);
-                            MessageSender.SendMessage(ChatId, SecondTask.Clause);
-                            ChooseNextTasks();
+                            Front.CaptainDisplay.SendClauseOfTask(ChatId, SecondTask);
+                            ChooseTaskToAnswer();
                         }
                         else
                         {
@@ -152,8 +157,8 @@ namespace ZanzibarBot.People
                             {
                                 Number = -1
                             };
-                            MessageSender.SendMessage(ChatId, FirstTask.Clause);
-                            ChooseNextTasks();
+                            Front.CaptainDisplay.SendClauseOfTask(ChatId, FirstTask);
+                            ChooseTaskToAnswer();
                         }
 
                         break;
@@ -168,11 +173,11 @@ namespace ZanzibarBot.People
                         {
                             OlympiadConnected.Results.workbook.Close();
                             OlympiadConnected.Results.SendCurrentResults(ChatId);
-                            MessageSender.SendMessage(ChatId, "Перевіряючі, можливло, ще не закінчили перевірку.");
+                            Front.CaptainDisplay.TasksAreStillOnCheck(ChatId);
                         }
                         else
                         {
-                            MessageSender.SendMessage(ChatId, "Олімпіаду вже закінчено, але Ви можете перевірити результати.");
+                            Front.CaptainDisplay.OlympiadIsEnded(ChatId);
                         }
                         break;
                     }
@@ -187,82 +192,32 @@ namespace ZanzibarBot.People
                     {
                         OlympiadConnected.Results.workbook.Close();
                         OlympiadConnected.Results.SendCurrentResults(ChatId);
-                        ChooseNextTasks();
-                        break;
-                    }
-                case ("/passtask"):
-                    {
-                        ChooseNextTasks();
+                        ChooseTaskToAnswer();
                         break;
                     }
                default:
                     {
+                        ChooseTaskToAnswer();
                         break;
                     }
             }
         }
 
-        private void ChooseNextTasks()
+        private void ChooseTaskToAnswer()
         {
-            ReplyKeyboardMarkup markup = ReplyKeyboardOfTasksToPass();
-            MessageSender.SendMessage(ChatId, "Оберіть задачу, котру хочете відправити.", markup);
+            Front.CaptainDisplay.ChooseTaskToAnswer(ChatId, FirstTask, SecondTask);
             priority = Priorities.GetTaskForProcess;
         }
 
         public override void StartOlympiad()
         {
-            MessageSender.SendMessage(ChatId, "Олімпіаду розпочато!");
+            Front.CaptainDisplay.DisplayReadme(ChatId);
 
-            MessageSender.SendMessage(ChatId,
-@"Вітаю! 
-Внизу є дві кнопки з номерами задач, котрі ви можете відправити. 
-Натискаючи на одну з них, ви маете написати відповідь на обрану задачу.
-Команда /getresults - корисна функція для перегляду інформації про стан олімпіади на даний момент.
-Успіхів!");
+            Front.CaptainDisplay.SendClauseOfTask(ChatId, FirstTask);
+            Front.CaptainDisplay.SendClauseOfTask(ChatId, SecondTask);
 
-            MessageSender.SendMessage(ChatId, FirstTask.Clause);
-            MessageSender.SendMessage(ChatId, SecondTask.Clause);
-
-            ReplyKeyboardMarkup replyKeyboardMarkup = ReplyKeyboardOfTasksToPass();
-            MessageSender.SendMessage(ChatId, "Щоб відправити відповідь на одну з задач натисніть кнопку з номером задачі.", replyKeyboardMarkup);
+            Front.CaptainDisplay.ChooseTaskToAnswer(ChatId, FirstTask, SecondTask);
             priority = Priorities.GetTaskForProcess;
-        }
-
-        private ReplyKeyboardMarkup ReplyKeyboardOfTasksToPass()
-        {
-            if (SecondTask.Number != -1 && FirstTask.Number != -1)
-            {
-                ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(new[]
-                {
-                    new KeyboardButton(FirstTask.Number.ToString()),
-                    new KeyboardButton(SecondTask.Number.ToString())
-                })
-                {
-                    ResizeKeyboard = true
-                };
-                priority = Priorities.GetTaskForProcess;
-
-                return replyKeyboardMarkup;
-            }
-            else if (SecondTask.Number == -1 && FirstTask.Number != -1)
-            {
-                ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(new[]
-                {
-                    new KeyboardButton(FirstTask.Number.ToString()),
-                })
-                {
-                    ResizeKeyboard = true
-                };
-                priority = Priorities.GetTaskForProcess;
-
-                return replyKeyboardMarkup;
-            }
-            else
-            {
-                OlympiadConnected.Olympiad.TryEndingOlympiad();
-                return new ReplyKeyboardMarkup();
-            }
-
         }
 
         public void SetResultForAttempt(Attempt attempt)
@@ -270,12 +225,12 @@ namespace ZanzibarBot.People
             if (attempt.Result)
             {
                 OlympiadConnected.Results.WriteCorrectInWorksheet(NumberOfRowInExcelWorksheet, attempt.task.Number);
-                MessageSender.SendMessage(ChatId, attempt.task.Number + " - правильно.");
+                Front.CaptainDisplay.InformAboutTaskCorrectness(ChatId, attempt.task.Number);
             }
             else
             {
                 OlympiadConnected.Results.WriteIncorrectInWorksheet(NumberOfRowInExcelWorksheet, attempt.task.Number);
-                MessageSender.SendMessage(ChatId, attempt.task.Number + " - неправильно.");
+                Front.CaptainDisplay.InformAboutTaskIncorrectness(ChatId, attempt.task.Number);
             }
         }
 

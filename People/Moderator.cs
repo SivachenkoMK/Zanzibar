@@ -20,13 +20,15 @@ namespace ZanzibarBot.People
 
         private Attempt attemptOnCheck = new Attempt();
 
-        public void GiveAllInformation()
+        public void Start()
         {
-            MessageSender.SendMessage(ChatId, "Ви - головний перевіряючий. Щоб розпочати олімпіаду, введіть в чат слово 'Розпочати'. Перед цим перевірте, чи всі учасники підготувалися до олімпіади.");
+            Front.ModeratorDisplay.InformModeratorAboutTools(ChatId);
+            prioriy = Priorities.StartOlympiad;
         }
 
-        public void SetPriorityForStartOlympiad()
+        public void StartMain()
         {
+            Front.ModeratorDisplay.InformMainModeratorHowToStartOlympiad(ChatId);
             prioriy = Priorities.StartOlympiad;
         }
 
@@ -36,28 +38,29 @@ namespace ZanzibarBot.People
             {
                 case (Priorities.NoPriority):
                     {
-                        ProcessMessageWithoutPriority(message);
+                        Front.ModeratorDisplay.YouCantDoThat(ChatId);
                         break;
                     }
                 case (Priorities.StartOlympiad):
                     {
-                        if (message.Text.ToLower().Contains("розпочати"))
+                        if (message.Text == "Розпочати")
                         {
                             if (IsMain)
                             {
                                 OlympiadConnected.Olympiad.TryStartingOlympiad();
                                 OlympiadConnected.Timer timer = new OlympiadConnected.Timer();
+                                timer.Start();
                             }
                             else
                             {
-                                MessageSender.SendMessage(ChatId, "Ви не можете розпочати олімпіаду.");
+                                Front.ModeratorDisplay.YouCantStartOlympiad(ChatId);
                             }
                         }
                         break;
                     }
                 case (Priorities.WaitForStart):
                     {
-                        MessageSender.SendMessage(ChatId, "Зачекайте початку олімпіади.");
+                        Front.ModeratorDisplay.WaitForOlympiadStart(ChatId);
                         break;
                     }
                 case (Priorities.CheckingTask):
@@ -65,24 +68,23 @@ namespace ZanzibarBot.People
                         if (message.Text == "Правильно")
                         {
                             prioriy = Priorities.StartedOlympiad;
-                            ModeratorCaptainAdapter.SetPersonalResultOfAttempt(attemptOnCheck, true);
+                            AttemptProcesser.SetPersonalResultOfAttempt(attemptOnCheck, true);
                             TryCheckingNextTask();
                         }
                         else if (message.Text == "Неправильно")
                         {
                             prioriy = Priorities.StartedOlympiad;
-                            ModeratorCaptainAdapter.SetPersonalResultOfAttempt(attemptOnCheck, false);
+                            AttemptProcesser.SetPersonalResultOfAttempt(attemptOnCheck, false);
                             TryCheckingNextTask();
                         }
                         else
                         {
-                            MessageSender.SendMessage(ChatId, "Будь ласка, відправляйте коректні дані.");
+                            Front.ModeratorDisplay.PleaseGiveCorrectData(ChatId);
                         }
                         break;
                     }
                 case (Priorities.StartedOlympiad):
                     {
-
                         break;
                     }
             }
@@ -115,42 +117,20 @@ namespace ZanzibarBot.People
 
         public void CheckTask(Attempt attempt)
         {
-            ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(new[]
-            {
-                new KeyboardButton("Правильно"),
-                new KeyboardButton("Неправильно")
-            })
-            {
-                ResizeKeyboard = true,
-                OneTimeKeyboard = true
-            };
-
-            MessageSender.SendMessage(ChatId, attempt.task.Clause + "\nПравильна відповідь: " + attempt.task.Answer + "\nВідповідь учасника: " + attempt.answer, replyKeyboardMarkup);
+            Front.ModeratorDisplay.GiveInfoAboutCaptainAnswer(ChatId, attempt);
             prioriy = Priorities.CheckingTask;
             attemptOnCheck = attempt;
             IsChecking = true;
         }
 
-        private void ProcessMessageWithoutPriority(Message message)
-        {
-            switch (message.Text)
-            {
-                case ("/getresults"):
-                    {
-                        /* Получить резы */
-                        break;
-                    }
-                default:
-                    {
-                        MessageSender.SendMessage(ChatId, "Зачекайте.");
-                        break;
-                    }
-            }
-        }
-
         public override void StartOlympiad()
         {
             prioriy = Priorities.StartedOlympiad;
+        }
+
+        public override void EndOlympiad()
+        {
+            
         }
 
         private enum Priorities

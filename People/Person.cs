@@ -11,8 +11,6 @@ namespace ZanzibarBot.People
 {
     public class Person
     {
-        private const string AuthorizationWasSuccessful = "Авторізація пройшла успішно.";
-
         public virtual string Status { get; } = "Person";
 
         public long ChatId;
@@ -23,11 +21,11 @@ namespace ZanzibarBot.People
         {
             if (OlympiadConnected.Olympiad.IsStarted)
             {
-                MessageSender.SendMessage(ChatId, "Ви вже не можете доєднатись - олімпіаду розпочато.");
+                Front.PersonDisplay.OlympiadIsAlreadyInProgress(ChatId);
             }
             else if (message.Text == "/start")
             {
-                MessageSender.SendMessage(ChatId, "Привіт. Я бот, котрий допоможе Вам з олімпіадою «Занзібар».");
+                Front.PersonDisplay.Hello(ChatId);
                 EnterPasswordDisplay();
             }
             else if (message.Text == "/changestatus")
@@ -42,7 +40,7 @@ namespace ZanzibarBot.People
 
         private void EnterPasswordDisplay()
         {
-            MessageSender.SendMessage(ChatId, "Введіть пароль");
+            Front.PersonDisplay.EnterPassword(ChatId);
             priority = Priorities.ProcessPassword;
         }
 
@@ -58,7 +56,7 @@ namespace ZanzibarBot.People
 
             ListOfPeople.AddToListOfPeople(captain);
 
-            MessageSender.SendMessage(ChatId, AuthorizationWasSuccessful);
+            captain.Start();
         }
 
         private void ProcessPasswordForCorrectness(Message message)
@@ -95,7 +93,7 @@ namespace ZanzibarBot.People
                         }
                     default:
                         {
-                            MessageSender.SendMessage(ChatId, "Неправильний пароль. Спробуйте ще раз.");
+                            Front.PersonDisplay.IncorrectPassword(ChatId);
                             break;
                         }
                 }
@@ -113,7 +111,7 @@ namespace ZanzibarBot.People
             
             ListOfPeople.AddToListOfPeople(moderator);
 
-            MessageSender.SendMessage(ChatId, AuthorizationWasSuccessful);
+            moderator.Start();
         }
 
         private void CreateNewMainModerator()
@@ -123,17 +121,15 @@ namespace ZanzibarBot.People
                 ChatId = this.ChatId,
                 IsMain = true,
             };
-
             ListOfPeople.AddToListOfPeople(moderator);
-            moderator.GiveAllInformation();
-            moderator.SetPriorityForStartOlympiad();
-            MessageSender.SendMessage(ChatId, AuthorizationWasSuccessful);
+
+            moderator.StartMain();
         }
 
         public virtual void StartOlympiad()
         {
             RemoveThisFromWaitList();
-            MessageSender.SendMessage(ChatId, "Ви вже не можете доєднатись - олімпіаду розпочато.");
+            Front.PersonDisplay.OlympiadIsAlreadyInProgress(ChatId);
         }
 
         private void RemoveThisFromWaitList()

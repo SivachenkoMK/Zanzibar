@@ -19,7 +19,11 @@ namespace ZanzibarBot.People
 
         public virtual void ProcessMessage(Message message)
         {
-            if (OlympiadConnected.Olympiad.IsStarted)
+            if (priority == Priorities.NoActionAvailable)
+            {
+                
+            }
+            else if (OlympiadConnected.Olympiad.IsStarted)
             {
                 Front.PersonDisplay.OlympiadIsAlreadyInProgress(ChatId);
             }
@@ -142,10 +146,16 @@ namespace ZanzibarBot.People
 
         }
 
+        public virtual void SetNoActionAvailable()
+        {
+            priority = Priorities.NoActionAvailable;
+        }
+
         private enum Priorities
         {
             NoPriority,
-            ProcessPassword
+            ProcessPassword,
+            NoActionAvailable
         }
     }
 }

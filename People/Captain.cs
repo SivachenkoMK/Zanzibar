@@ -39,6 +39,10 @@ namespace ZanzibarBot.People
         {
             switch (priority)
             {
+                case (Priorities.NoActionAvailable):
+                    {
+                        break;
+                    }
                 case (Priorities.NoPriority):
                     {
                         ProcessMessageWithNoPriority(message);
@@ -239,6 +243,11 @@ namespace ZanzibarBot.People
             priority = Priorities.EndedOlympiad;
         }
 
+        public override void SetNoActionAvailable()
+        {
+            priority = Priorities.NoActionAvailable;
+        }
+
         private enum Priorities
         {
             GetReady,
@@ -247,7 +256,8 @@ namespace ZanzibarBot.People
             NoPriority,
             GetTaskForProcess,
             StartedOlympiad,
-            EndedOlympiad
+            EndedOlympiad,
+            NoActionAvailable
         }
     }
 }

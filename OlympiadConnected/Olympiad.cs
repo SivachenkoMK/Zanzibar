@@ -44,23 +44,13 @@ namespace ZanzibarBot.OlympiadConnected
         {
             foreach (Person person in ListOfPeople.People)
             {
-                MessageSender.SendMessage(person.ChatId, "Олімпіаду закінчено.");
+                Front.PersonDisplay.OlympiadIsEnded(person.ChatId);
                 Results.workbook.Close();
                 Results.SendCurrentResults(person.ChatId);
             }
             foreach (Person person in ListOfPeople.People)
             {
-                if (person.Status == "Captain")
-                {
-                    person.EndOlympiad();
-                }
-            }
-            foreach (Person person in ListOfPeople.People)
-            {
-                if (person.Status == "Moderator")
-                {
-                    MessageSender.SendMessage(person.ChatId, "Якщо ще не закінчили перевіряти - закінчуйте.");
-                }
+                person.EndOlympiad();
             }
             Console.WriteLine("Олімпіаду закінчено");
             IsEnded = true;

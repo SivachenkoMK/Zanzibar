@@ -56,5 +56,10 @@ namespace ZanzibarBot.Front
         {
             MessageSender.SendMessage(ChatId, "Ви не можете цього зробити");
         }
+
+        public static void InformMainModeratorHowToEndOlympiad(long chatId)
+        {
+            MessageSender.SendMessage(chatId, "Для учаників олімпіаду закінчено. Коли перевіряючі закінчать, напишіть в чат слово 'Кінець'");
+        }
     }
 }

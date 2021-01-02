@@ -36,9 +36,22 @@ namespace ZanzibarBot.People
         {
             switch (prioriy)
             {
+                case (Priorities.NoActionAvailable):
+                    {
+                        break;
+                    }
                 case (Priorities.NoPriority):
                     {
-                        Front.ModeratorDisplay.YouCantDoThat(ChatId);
+                        if (OlympiadConnected.Olympiad.IsEnded && IsMain && message.Text == "Кінець")
+                        {
+                            foreach (Person person in ListOfPeople.People)
+                            {
+                                OlympiadConnected.Results.SendCurrentResults(person.ChatId);
+                                person.SetNoActionAvailable();
+                            }
+                        }
+                        else
+                            Front.ModeratorDisplay.YouCantDoThat(ChatId);
                         break;
                     }
                 case (Priorities.StartOlympiad):
@@ -130,7 +143,15 @@ namespace ZanzibarBot.People
 
         public override void EndOlympiad()
         {
-            
+            if (IsMain)
+            {
+                Front.ModeratorDisplay.InformMainModeratorHowToEndOlympiad(ChatId);
+            }
+        }
+
+        public override void SetNoActionAvailable()
+        {
+            prioriy = Priorities.NoActionAvailable;
         }
 
         private enum Priorities
@@ -139,7 +160,8 @@ namespace ZanzibarBot.People
             WaitForStart,
             NoPriority,
             StartedOlympiad,
-            CheckingTask
+            CheckingTask,
+            NoActionAvailable
         }
     }
 }

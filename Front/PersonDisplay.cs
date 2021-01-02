@@ -25,5 +25,10 @@ namespace ZanzibarBot.Front
         {
             MessageSender.SendMessage(chatId, "Неправильний пароль. Спробуйте ще раз.");
         }
+
+        public static void OlympiadIsEnded(long chatId)
+        {
+            MessageSender.SendMessage(chatId, "Олімпіаду закінчено");
+        }
     }
 }

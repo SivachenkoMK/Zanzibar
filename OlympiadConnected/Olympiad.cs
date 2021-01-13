@@ -45,11 +45,7 @@ namespace ZanzibarBot.OlympiadConnected
             foreach (Person person in ListOfPeople.People)
             {
                 Front.PersonDisplay.OlympiadIsEnded(person.ChatId);
-                Results.workbook.Close();
                 Results.SendCurrentResults(person.ChatId);
-            }
-            foreach (Person person in ListOfPeople.People)
-            {
                 person.EndOlympiad();
             }
             Console.WriteLine("Олімпіаду закінчено");

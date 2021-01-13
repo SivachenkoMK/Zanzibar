@@ -12,8 +12,6 @@ namespace ZanzibarBot.People
 {
     class Captain : Person
     {
-        public override string Status => "Captain";
-
         public string TeamName;
 
         public void Start()
@@ -62,7 +60,6 @@ namespace ZanzibarBot.People
                         }
                         else if (message.Text == "/getresults")
                         {
-                            OlympiadConnected.Results.workbook.Close();
                             OlympiadConnected.Results.SendCurrentResults(ChatId);
                             ChooseTaskToAnswer();
                         }
@@ -175,7 +172,6 @@ namespace ZanzibarBot.People
                     {
                         if (message.Text == "/getresults")
                         {
-                            OlympiadConnected.Results.workbook.Close();
                             OlympiadConnected.Results.SendCurrentResults(ChatId);
                             Front.CaptainDisplay.TasksAreStillOnCheck(ChatId);
                         }
@@ -194,14 +190,16 @@ namespace ZanzibarBot.People
             {
                case ("/getresults"):
                     {
-                        OlympiadConnected.Results.workbook.Close();
                         OlympiadConnected.Results.SendCurrentResults(ChatId);
                         ChooseTaskToAnswer();
                         break;
                     }
                default:
                     {
-                        ChooseTaskToAnswer();
+                        if (OlympiadConnected.Olympiad.IsStarted && !OlympiadConnected.Olympiad.IsEnded)
+                            ChooseTaskToAnswer();
+                        else
+                            Front.CaptainDisplay.YouCantDoThat(ChatId);
                         break;
                     }
             }

@@ -11,7 +11,7 @@ namespace ZanzibarBot.People
 {
     public class Person
     {
-        public virtual string Status { get; } = "Person";
+        public StatusOfPerson status = StatusOfPerson.Waiting;
 
         public long ChatId;
 
@@ -55,7 +55,8 @@ namespace ZanzibarBot.People
             Captain captain = new Captain
             {
                 ChatId = this.ChatId,
-                TeamName = teamName
+                TeamName = teamName,
+                status = StatusOfPerson.Captain
             };
 
             ListOfPeople.AddToListOfPeople(captain);
@@ -109,7 +110,7 @@ namespace ZanzibarBot.People
             Moderator moderator = new Moderator()
             {
                 ChatId = this.ChatId,
-                IsMain = false
+                status = StatusOfPerson.Moderator
             };
 
             
@@ -120,14 +121,14 @@ namespace ZanzibarBot.People
 
         private void CreateNewMainModerator()
         {
-            Moderator moderator = new Moderator()
+            MainModerator moderator = new MainModerator()
             {
                 ChatId = this.ChatId,
-                IsMain = true,
+                status = StatusOfPerson.MainModerator
             };
             ListOfPeople.AddToListOfPeople(moderator);
 
-            moderator.StartMain();
+            moderator.Start();
         }
 
         public virtual void StartOlympiad()
@@ -157,5 +158,13 @@ namespace ZanzibarBot.People
             ProcessPassword,
             NoActionAvailable
         }
+    }
+
+    public enum StatusOfPerson
+    { 
+        Waiting,
+        Captain,
+        Moderator,
+        MainModerator
     }
 }

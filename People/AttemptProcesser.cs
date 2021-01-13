@@ -14,7 +14,7 @@ namespace ZanzibarBot.People
             List<Moderator> moderators = new List<Moderator>();
             foreach (Person person in ListOfPeople.People)
             {
-                if (person.Status == "Moderator")
+                if (person.status == StatusOfPerson.Moderator)
                 {
                     moderators.Add((Moderator)person);
                 }

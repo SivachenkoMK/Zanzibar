@@ -8,6 +8,10 @@ namespace ZanzibarBot.Front
 {
     public static class CaptainDisplay
     {
+        public static void YouCantDoThat(long chatId)
+        {
+            MessageSender.SendMessage(chatId, "Ви не можете цього зробити");
+        }
 
         public static void DisplayReady(long chatId)
         {

@@ -30,5 +30,15 @@ namespace ZanzibarBot.Front
         {
             MessageSender.SendMessage(chatId, "Олімпіаду закінчено");
         }
+
+        public static void InformAboutEndOfChecking(long chatId)
+        {
+            MessageSender.SendMessage(chatId, "Фінальні результати:");
+        }
+
+        public static void TheseAreFinalResults(long chatId)
+        {
+            MessageSender.SendMessage(chatId, "Це - кінцеві результати.");
+        }
     }
 }

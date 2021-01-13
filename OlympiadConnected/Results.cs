@@ -5,6 +5,7 @@ using System.Text;
 using Telegram.Bot.Types.InputFiles;
 using Microsoft.Office.Interop.Excel;
 using Telegram.Bot;
+using ZanzibarBot.People;
 
 namespace ZanzibarBot.OlympiadConnected
 {
@@ -56,7 +57,23 @@ namespace ZanzibarBot.OlympiadConnected
 
         public static void SendCurrentResults(long chatId)
         {
+            workbook.Close();
             MessageSender.SendResults(chatId);
+        }
+
+        public static void SendFinalResults(long chatId)
+        {
+            Front.PersonDisplay.TheseAreFinalResults(chatId);
+            SendCurrentResults(chatId);
+        }
+
+        public static void EndForModeratorsAndSendFinalResults()
+        {
+            foreach (Person person in ListOfPeople.People)
+            {
+                SendFinalResults(person.ChatId);
+                person.SetNoActionAvailable();
+            }
         }
     }
 }

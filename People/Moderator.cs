@@ -8,13 +8,9 @@ namespace ZanzibarBot.People
 {
     class Moderator : Person
     {
-        public bool IsMain = false;
-
         private bool IsChecking = false;
 
         private List<Attempt> AttemptsToProcess = new List<Attempt>();
-
-        public override string Status => "Moderator";
 
         private Priorities prioriy = Priorities.NoPriority;
 
@@ -23,13 +19,7 @@ namespace ZanzibarBot.People
         public void Start()
         {
             Front.ModeratorDisplay.InformModeratorAboutTools(ChatId);
-            prioriy = Priorities.StartOlympiad;
-        }
-
-        public void StartMain()
-        {
-            Front.ModeratorDisplay.InformMainModeratorHowToStartOlympiad(ChatId);
-            prioriy = Priorities.StartOlympiad;
+            prioriy = Priorities.WaitForStart;
         }
 
         public override void ProcessMessage(Message message)
@@ -42,33 +32,7 @@ namespace ZanzibarBot.People
                     }
                 case (Priorities.NoPriority):
                     {
-                        if (OlympiadConnected.Olympiad.IsEnded && IsMain && message.Text == "Кінець")
-                        {
-                            foreach (Person person in ListOfPeople.People)
-                            {
-                                OlympiadConnected.Results.SendCurrentResults(person.ChatId);
-                                person.SetNoActionAvailable();
-                            }
-                        }
-                        else
-                            Front.ModeratorDisplay.YouCantDoThat(ChatId);
-                        break;
-                    }
-                case (Priorities.StartOlympiad):
-                    {
-                        if (message.Text == "Розпочати")
-                        {
-                            if (IsMain)
-                            {
-                                OlympiadConnected.Olympiad.TryStartingOlympiad();
-                                OlympiadConnected.Timer timer = new OlympiadConnected.Timer();
-                                timer.Start();
-                            }
-                            else
-                            {
-                                Front.ModeratorDisplay.YouCantStartOlympiad(ChatId);
-                            }
-                        }
+                        Front.ModeratorDisplay.YouCantDoThat(ChatId);
                         break;
                     }
                 case (Priorities.WaitForStart):
@@ -123,9 +87,7 @@ namespace ZanzibarBot.People
             if (!IsChecking)
                 CheckTask(attempt);
             else
-            {
                 AttemptsToProcess.Add(attempt);
-            }
         }
 
         public void CheckTask(Attempt attempt)
@@ -141,12 +103,9 @@ namespace ZanzibarBot.People
             prioriy = Priorities.StartedOlympiad;
         }
 
-        public override void EndOlympiad()
-        {
-            if (IsMain)
-            {
-                Front.ModeratorDisplay.InformMainModeratorHowToEndOlympiad(ChatId);
-            }
+        public override void EndOlympiad() 
+        { 
+        
         }
 
         public override void SetNoActionAvailable()
@@ -156,7 +115,6 @@ namespace ZanzibarBot.People
 
         private enum Priorities
         {
-            StartOlympiad,
             WaitForStart,
             NoPriority,
             StartedOlympiad,
